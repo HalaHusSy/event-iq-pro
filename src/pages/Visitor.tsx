@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText, ChevronDown, Brain, X, GitCompare, Filter } from "lucide-react";
+import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText, ChevronDown, Brain, X, GitCompare, Filter, Info, Mic as MicIcon, Cpu, FileText as FileIcon, Shield, Clock, Globe, RotateCcw, Database } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
 import { Match, sampleMatches, faqs, sessions } from "@/lib/mock";
 import { toast } from "sonner";
@@ -535,40 +537,158 @@ function EventMemory() {
       </Card>
 
       <Dialog open={showConsent} onOpenChange={setShowConsent}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{lang === "th" ? "ยินยอมการบันทึก" : "Recording Consent"}</DialogTitle>
-            <DialogDescription>{lang === "th" ? "ก่อนเริ่มบันทึก กรุณาอ่านและยอมรับเงื่อนไขด้านล่าง" : "Please review and accept before recording."}</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              {lang === "th" ? "ยินยอมการบันทึกตาม PDPA" : "PDPA-Compliant Recording Consent"}
+            </DialogTitle>
+            <DialogDescription>{lang === "th" ? "โปร่งใสและตรวจสอบได้ — โปรดอ่านก่อนยินยอม" : "Transparent and auditable — please review before consenting."}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-secondary">
-              <Checkbox checked={c1} onCheckedChange={v => setC1(!!v)} className="mt-0.5" />
-              <div className="text-sm"><span className="font-medium">{lang === "th" ? "ฉันยินยอมให้บันทึกการสนทนานี้" : "I agree to record this conversation"}</span> <span className="text-destructive">*</span></div>
-            </label>
-            <label className="flex items-start gap-3 p-3 rounded-lg border-2 border-accent bg-accent-soft cursor-pointer">
-              <Checkbox checked={c2} onCheckedChange={v => setC2(!!v)} className="mt-0.5" />
-              <div className="text-sm">
-                <span className="font-medium">{lang === "th" ? "เผยแพร่บทความสาธารณะ — รับส่วนลด 50%" : "Make article public — get 50% discount"}</span>
-                <div className="font-mono text-xs mt-1 text-muted-foreground">
-                  Standard: <span className="line-through">฿500</span> → Public: <span className="text-accent font-bold">฿250 (-50%)</span>
+
+          <TooltipProvider delayDuration={150}>
+            <div className="space-y-5">
+              {/* Data flow visualization */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{lang === "th" ? "ขั้นตอนการประมวลผลข้อมูล" : "Data Flow"}</p>
+                <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border">
+                  {[
+                    { icon: MicIcon, label: lang === "th" ? "บันทึกเสียง" : "Audio recorded", sub: "WAV · 16kHz" },
+                    { icon: Cpu, label: lang === "th" ? "AI ประมวลผล" : "AI processed", sub: "STT · LLM" },
+                    { icon: FileIcon, label: lang === "th" ? "สร้างบทความ" : "Article generated", sub: "Markdown" },
+                  ].map((s, i, arr) => (
+                    <div key={s.label} className="flex items-center gap-2 flex-1">
+                      <div className="flex flex-col items-center gap-1 text-center flex-1">
+                        <div className="h-9 w-9 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground shadow-md">
+                          <s.icon className="h-4 w-4" />
+                        </div>
+                        <div className="text-[11px] font-medium leading-tight">{s.label}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground">{s.sub}</div>
+                      </div>
+                      {i < arr.length - 1 && (
+                        <div className="flex-1 h-px bg-gradient-to-r from-primary/40 to-accent/40 relative">
+                          <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 -rotate-90 text-primary" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </label>
-            <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-secondary">
-              <Checkbox checked={c3} onCheckedChange={v => setC3(!!v)} className="mt-0.5" />
-              <div className="text-sm"><span className="font-medium">{lang === "th" ? "ฉันยอมรับข้อตกลง PDPA" : "I accept PDPA terms"}</span> <span className="text-destructive">*</span> <a className="text-primary underline ml-1" href="#">{lang === "th" ? "อ่านเพิ่ม" : "Read"}</a></div>
-            </label>
-            <div>
-              <p className="text-xs font-medium mb-1.5">{lang === "th" ? "ลงลายมือชื่อ" : "Signature"} <span className="text-destructive">*</span></p>
-              <canvas ref={canvasRef} width={500} height={150} className="w-full bg-secondary rounded-lg cursor-crosshair touch-none"
-                onPointerDown={startSign} onPointerMove={moveSign} onPointerUp={() => drawing.current = false} onPointerLeave={() => drawing.current = false} />
-              <button onClick={clearSign} className="text-xs text-muted-foreground mt-1 hover:underline">{lang === "th" ? "ล้าง" : "Clear"}</button>
+
+              {/* What we collect & retention */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg border bg-secondary/40">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold mb-2"><Database className="h-3.5 w-3.5 text-primary" />{lang === "th" ? "ข้อมูลที่เก็บ" : "Data collected"}</div>
+                  <ul className="text-xs space-y-1 text-muted-foreground">
+                    <li>• {lang === "th" ? "ไฟล์เสียงและ transcript" : "Audio file & transcript"}</li>
+                    <li>• {lang === "th" ? "ชื่อบูธและเวลาที่บันทึก" : "Booth name & timestamp"}</li>
+                    <li>• {lang === "th" ? "User ID (ถ้าเข้าสู่ระบบ)" : "User ID (if signed in)"}</li>
+                  </ul>
+                </div>
+                <div className="p-3 rounded-lg border bg-secondary/40">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold mb-2"><Clock className="h-3.5 w-3.5 text-primary" />{lang === "th" ? "ระยะเวลาเก็บ" : "Retention"}</div>
+                  <ul className="text-xs space-y-1 text-muted-foreground">
+                    <li>• {lang === "th" ? "เสียงดิบ: 30 วัน" : "Raw audio: 30 days"}</li>
+                    <li>• {lang === "th" ? "Transcript: 12 เดือน" : "Transcript: 12 months"}</li>
+                    <li>• {lang === "th" ? "บทความ: ตามที่คุณกำหนด" : "Article: until you delete"}</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Required consent */}
+              <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${c1 ? "border-primary/60 bg-primary/5" : "border-border hover:bg-secondary"}`}>
+                <Checkbox checked={c1} onCheckedChange={v => setC1(!!v)} className="mt-0.5" />
+                <div className="text-sm">
+                  <span className="font-medium">{lang === "th" ? "ฉันยินยอมให้บันทึกการสนทนานี้" : "I consent to record this conversation"}</span>
+                  <span className="text-destructive font-bold ml-1">*</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{lang === "th" ? "ผู้พูดคนอื่นต้องได้รับแจ้งด้วย" : "Other speakers must also be informed."}</p>
+                </div>
+              </label>
+
+              {/* Optional public sharing with tooltip */}
+              <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${c2 ? "border-accent bg-accent-soft" : "border-accent/40 bg-accent-soft/40 hover:bg-accent-soft"}`}>
+                <Checkbox checked={c2} onCheckedChange={v => setC2(!!v)} className="mt-0.5" />
+                <div className="text-sm flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{lang === "th" ? "เผยแพร่บทความสาธารณะ — รับส่วนลด 50%" : "Make article public — get 50% discount"}</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" onClick={(e) => e.preventDefault()} className="text-muted-foreground hover:text-foreground">
+                          <Info className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="font-semibold mb-1">{lang === "th" ? "ทำไมถึงได้ส่วนลด?" : "Why the discount?"}</p>
+                        <p className="text-xs">{lang === "th" ? "บทความสาธารณะช่วยให้ผู้เข้าชมท่านอื่นค้นพบบูธนี้ และสร้างคุณค่าให้ชุมชน เราจึงคืนส่วนลด 50% เป็นการขอบคุณ" : "Public articles help other visitors discover this booth and add value to the community. We give back 50% as thanks."}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="font-mono text-xs mt-1 text-muted-foreground">
+                    Standard: <span className="line-through">฿500</span> → Public: <span className="text-accent font-bold">฿250 (-50%)</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">{lang === "th" ? "(ไม่บังคับ — เลือกได้)" : "(Optional)"}</p>
+                </div>
+              </label>
+
+              <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${c3 ? "border-primary/60 bg-primary/5" : "border-border hover:bg-secondary"}`}>
+                <Checkbox checked={c3} onCheckedChange={v => setC3(!!v)} className="mt-0.5" />
+                <div className="text-sm">
+                  <span className="font-medium">{lang === "th" ? "ฉันยอมรับข้อตกลง PDPA" : "I accept the PDPA terms"}</span>
+                  <span className="text-destructive font-bold ml-1">*</span>
+                </div>
+              </label>
+
+              {/* PDPA full terms */}
+              <Accordion type="single" collapsible>
+                <AccordionItem value="pdpa" className="border rounded-lg px-4">
+                  <AccordionTrigger className="text-sm hover:no-underline">
+                    <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />{lang === "th" ? "อ่านข้อตกลง PDPA ฉบับเต็ม" : "Read full PDPA terms"}</span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <ScrollArea className="h-48 pr-3">
+                      <div className="text-xs space-y-2 leading-relaxed text-muted-foreground">
+                        <p><b className="text-foreground">1. {lang === "th" ? "ผู้ควบคุมข้อมูล" : "Data Controller"}.</b> EventIQ Co., Ltd. ("Company") collects and processes personal data under PDPA B.E. 2562 (2019).</p>
+                        <p><b className="text-foreground">2. {lang === "th" ? "วัตถุประสงค์" : "Purpose"}.</b> Audio is recorded solely to generate a written summary article for your personal reference, with optional public sharing.</p>
+                        <p><b className="text-foreground">3. {lang === "th" ? "ฐานทางกฎหมาย" : "Lawful Basis"}.</b> Explicit consent under Section 19 of PDPA. You may withdraw consent at any time.</p>
+                        <p><b className="text-foreground">4. {lang === "th" ? "การเปิดเผย" : "Disclosure"}.</b> Audio is processed by Botnoi AI (subcontractor under DPA). No third-party marketing use.</p>
+                        <p><b className="text-foreground">5. {lang === "th" ? "การเก็บรักษา" : "Retention"}.</b> Raw audio: 30 days. Transcript: 12 months. Generated article: until deleted by you.</p>
+                        <p><b className="text-foreground">6. {lang === "th" ? "สิทธิของเจ้าของข้อมูล" : "Your Rights"}.</b> Access, rectification, erasure, restriction, portability, objection, and withdrawal of consent — contact dpo@eventiq.example.</p>
+                        <p><b className="text-foreground">7. {lang === "th" ? "ความปลอดภัย" : "Security"}.</b> AES-256 at rest, TLS 1.3 in transit, role-based access, audit logs.</p>
+                        <p><b className="text-foreground">8. {lang === "th" ? "การโอนข้ามประเทศ" : "Cross-border Transfer"}.</b> Data is processed in Thailand and Singapore (AWS ap-southeast-1) under SCCs.</p>
+                      </div>
+                    </ScrollArea>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
+              {/* Signature */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs font-medium">{lang === "th" ? "ลงลายมือชื่อ" : "Signature"} <span className="text-destructive font-bold">*</span></p>
+                  <button onClick={clearSign} type="button" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+                    <RotateCcw className="h-3 w-3" /> {lang === "th" ? "ทำใหม่" : "Redo"}
+                  </button>
+                </div>
+                <canvas ref={canvasRef} width={500} height={150} className="w-full bg-secondary rounded-lg cursor-crosshair touch-none border-2 border-dashed"
+                  onPointerDown={startSign} onPointerMove={moveSign} onPointerUp={() => drawing.current = false} onPointerLeave={() => drawing.current = false} />
+                <p className="text-[10px] text-muted-foreground mt-1 text-center">{lang === "th" ? "เซ็นชื่อด้วยนิ้วหรือเมาส์" : "Sign with your finger or mouse"}</p>
+              </div>
+
+              {/* Audit notice */}
+              <div className="flex items-start gap-2 p-2.5 rounded-md bg-muted/50 border text-[11px] font-mono text-muted-foreground">
+                <Globe className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <div>
+                  {lang === "th" ? "การยินยอมจะถูกบันทึกพร้อม timestamp และ IP address (203.0.113.x) เพื่อการตรวจสอบ" : "Consent will be logged with timestamp and IP address (203.0.113.x) for audit purposes."}
+                  <div>UTC: {new Date().toISOString()}</div>
+                </div>
+              </div>
             </div>
-          </div>
+          </TooltipProvider>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConsent(false)}>{lang === "th" ? "ยกเลิก" : "Cancel"}</Button>
             <Button disabled={!canStart} onClick={() => { setShowConsent(false); setPhase("recording"); setSeconds(0); }} className="bg-gradient-primary">
-              <Play className="h-4 w-4 mr-1.5" /> {lang === "th" ? "เริ่มบันทึก" : "Start Recording"}
+              <Play className="h-4 w-4 mr-1.5" /> {lang === "th" ? "ยินยอมและเริ่มบันทึก" : "Consent & Start"}
             </Button>
           </DialogFooter>
         </DialogContent>
