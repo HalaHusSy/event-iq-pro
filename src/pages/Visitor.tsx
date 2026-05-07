@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText, ChevronDown, Brain, X, GitCompare, Filter } from "lucide-react";
+import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText, ChevronDown, Brain, X, GitCompare, Filter, Info, Mic as MicIcon, Cpu, FileText as FileIcon, Shield, Clock, Globe, RotateCcw, Database } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
 import { Match, sampleMatches, faqs, sessions } from "@/lib/mock";
 import { toast } from "sonner";
