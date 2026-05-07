@@ -230,17 +230,58 @@ function ResultsView({ results }: { results: Match[] }) {
               {isExpanded && (
                 <div className="mt-5 pt-5 border-t space-y-5 animate-fade-up">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{lang === "th" ? "เกี่ยวกับบริษัท" : "About"}</h4>
-                      <p className="text-sm">{m.exhibitor.description}</p>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-4 mb-2">Use cases</h4>
-                      <ul className="space-y-1 text-sm list-disc pl-5">
-                        {m.exhibitor.usecases.map(u => <li key={u}>{u}</li>)}
-                      </ul>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{lang === "th" ? "เกี่ยวกับบริษัท" : "About"}</h4>
+                        {m.exhibitor.tagline && <p className="text-sm font-medium">{m.exhibitor.tagline}</p>}
+                        <p className="text-sm text-muted-foreground mt-1">{m.exhibitor.description}</p>
+                        <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                          <div className="p-2 rounded bg-secondary/50"><div className="text-muted-foreground">{lang === "th" ? "ก่อตั้ง" : "Founded"}</div><div className="font-mono font-semibold">{m.exhibitor.founded}</div></div>
+                          <div className="p-2 rounded bg-secondary/50"><div className="text-muted-foreground">{lang === "th" ? "พนักงาน" : "Employees"}</div><div className="font-mono font-semibold">{m.exhibitor.employees}</div></div>
+                          <div className="p-2 rounded bg-secondary/50 col-span-2"><div className="text-muted-foreground">HQ · Web</div><div className="font-mono font-semibold truncate">{m.exhibitor.headquarters} · {m.exhibitor.website}</div></div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{lang === "th" ? "บริการ" : "Services"}</h4>
+                        <div className="space-y-1.5">
+                          {m.exhibitor.services?.map(s => (
+                            <div key={s.name} className="p-2 rounded border bg-background/40">
+                              <div className="text-sm font-medium">{s.name}</div>
+                              <div className="text-xs text-muted-foreground">{s.description}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{lang === "th" ? "ตำแหน่งบูธ" : "Booth location"}</h4>
-                      <FloorMap hall={m.exhibitor.hall} booth={m.exhibitor.booth} />
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{lang === "th" ? "ตำแหน่งบูธ" : "Booth location"}</h4>
+                        <FloorMap hall={m.exhibitor.hall} booth={m.exhibitor.booth} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{lang === "th" ? "Use Cases เด่น" : "Featured Use Cases"}</h4>
+                        <div className="space-y-1.5">
+                          {m.exhibitor.useCaseDetails?.map(u => (
+                            <div key={u.title} className="p-2 rounded border bg-background/40">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-sm font-medium truncate">{u.title}</span>
+                                <Badge variant="outline" className="text-[10px] shrink-0">{u.industry}</Badge>
+                              </div>
+                              <div className="text-xs text-success mt-0.5">→ {u.outcome}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="p-2 rounded bg-secondary/50 text-xs">
+                          <div className="text-muted-foreground mb-1">{lang === "th" ? "ลูกค้าที่ใช้งาน" : "Notable clients"}</div>
+                          <div className="flex flex-wrap gap-1">{m.exhibitor.clients?.map(c => <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>)}</div>
+                        </div>
+                        <div className="p-2 rounded bg-accent-soft text-xs">
+                          <div className="text-muted-foreground mb-0.5">{lang === "th" ? "ราคาเริ่มต้น" : "Pricing"}</div>
+                          <div className="font-medium">{m.exhibitor.pricing}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
