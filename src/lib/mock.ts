@@ -53,6 +53,113 @@ export const exhibitors: Exhibitor[] = [
   { id: "e20", name: "LegalAI", logo: "⚖️", booth: "C-30", hall: "Hall C", tags: ["LegalTech", "Contract AI", "Compliance"], usecases: ["Contract review", "Clause extraction", "PDPA compliance"], description: "AI for legal teams" },
 ];
 
+// Enrich a subset of exhibitors with deeper mock data for the matching demo.
+const enrichments: Record<string, Partial<Exhibitor>> = {
+  e1: {
+    tagline: "Thailand's #1 Voice AI Platform",
+    founded: 2017, employees: "120+", headquarters: "Bangkok, Thailand", website: "botnoi.ai",
+    services: [
+      { name: "Voice Bot", description: "Thai-native TTS/STT พร้อม dialog manager สำหรับ call center" },
+      { name: "Chatbot Platform", description: "No-code builder รองรับ LINE, Facebook, Web, IVR" },
+      { name: "AI Agent Studio", description: "ผูก LLM กับ tools ภายใน เช่น CRM, ERP, ฐานข้อมูล" },
+    ],
+    useCaseDetails: [
+      { title: "AIS Call Center Automation", industry: "Telecom", outcome: "ลด AHT 35% ภายใน 4 เดือน" },
+      { title: "Krungsri IVR Modernization", industry: "Banking", outcome: "Self-service rate เพิ่มจาก 22% → 61%" },
+      { title: "SCG Internal HR Bot", industry: "Manufacturing", outcome: "ตอบคำถาม HR 8,000 ครั้ง/เดือนอัตโนมัติ" },
+    ],
+    clients: ["AIS", "Krungsri", "SCG", "True", "Bangkok Hospital"],
+    pricing: "เริ่ม ฿15,000/เดือน · POC ฟรี 30 วัน",
+  },
+  e15: {
+    tagline: "Voice AI ที่เข้าใจภาษาไทยจริง ๆ",
+    founded: 2019, employees: "40+", headquarters: "Bangkok, Thailand", website: "voicesphere.co.th",
+    services: [
+      { name: "Thai TTS Engine", description: "เสียงพูดธรรมชาติ 12 เสียง รองรับ SSML" },
+      { name: "Real-time STT", description: "ถอดเสียงสด latency < 400ms ความแม่นยำ 94%+" },
+      { name: "Call Analytics", description: "วิเคราะห์ sentiment, keyword, compliance อัตโนมัติ" },
+    ],
+    useCaseDetails: [
+      { title: "Insurance Claim Voicebot", industry: "Insurance", outcome: "ปิด claim 24/7 ลด wait time 70%" },
+      { title: "Retail IVR Upgrade", industry: "Retail", outcome: "CSAT จาก 3.2 → 4.6 ดาว" },
+    ],
+    clients: ["Muang Thai Life", "Central Group", "TMB"],
+    pricing: "Pay-per-minute ฿1.20/นาที · enterprise SLA available",
+  },
+  e2: {
+    tagline: "Enterprise LLM, deployed your way",
+    founded: 2021, employees: "60+", headquarters: "Bangkok, Thailand", website: "aisolutions.co.th",
+    services: [
+      { name: "RAG Platform", description: "เชื่อม SharePoint, Confluence, Google Drive ใน 1 วัน" },
+      { name: "Private LLM Hosting", description: "รัน Llama-3, Typhoon บน on-prem GPU" },
+      { name: "AI Copilot", description: "Copilot สำหรับ Sales, HR, Legal ใช้กับเอกสารองค์กร" },
+    ],
+    useCaseDetails: [
+      { title: "PTT Internal Knowledge Search", industry: "Energy", outcome: "ลดเวลาค้นเอกสาร 4 ชม. → 8 นาที" },
+      { title: "Bank Sales Copilot", industry: "Banking", outcome: "เสนอ product ตรงใจ → cross-sell +28%" },
+    ],
+    clients: ["PTT", "KBank", "BDMS"],
+    pricing: "License ฿80,000/เดือน + GPU compute",
+  },
+  e9: {
+    tagline: "Marketing automation built for B2B",
+    founded: 2018, employees: "35+", headquarters: "Bangkok, Thailand", website: "martechpro.co",
+    services: [
+      { name: "Lead Scoring AI", description: "คัด lead ที่พร้อมซื้อด้วย ML model" },
+      { name: "Email & LINE OA Automation", description: "Journey builder รองรับ multi-channel" },
+      { name: "Campaign Analytics", description: "Attribution model ระดับ touchpoint" },
+    ],
+    useCaseDetails: [
+      { title: "B2B SaaS Lead Funnel", industry: "Software", outcome: "MQL → SQL conversion +42%" },
+      { title: "Property Developer Campaign", industry: "Real Estate", outcome: "Cost per lead ลด 35%" },
+    ],
+    clients: ["Sansiri", "Builk", "Wongnai for Business"],
+    pricing: "เริ่ม ฿25,000/เดือน · ทดลองฟรี 14 วัน",
+  },
+  e8: {
+    tagline: "24/7 Managed Security, Thailand-based SOC",
+    founded: 2016, employees: "90+", headquarters: "Bangkok, Thailand", website: "securenet.co.th",
+    services: [
+      { name: "MDR (Managed Detection & Response)", description: "SOC 24/7 ตรวจจับและตอบสนองภัยคุกคาม" },
+      { name: "Zero Trust Network Access", description: "เข้าถึงระบบภายในแบบ identity-based" },
+      { name: "Compliance Audit", description: "PDPA, ISO 27001, PCI-DSS readiness" },
+    ],
+    useCaseDetails: [
+      { title: "E-commerce DDoS Defense", industry: "Retail", outcome: "บล็อก attack 1.2M req/s ไม่มี downtime" },
+      { title: "Hospital PDPA Readiness", industry: "Healthcare", outcome: "Audit pass 100% ใน 3 เดือน" },
+    ],
+    clients: ["JD Central", "Bumrungrad", "Bangchak"],
+    pricing: "MDR เริ่ม ฿120,000/เดือน",
+  },
+};
+
+Object.entries(enrichments).forEach(([id, data]) => {
+  const e = exhibitors.find(x => x.id === id);
+  if (e) Object.assign(e, data);
+});
+
+// Generic fallback so every exhibitor has reasonable detail
+exhibitors.forEach(e => {
+  if (!e.services) {
+    e.services = e.usecases.map((u, i) => ({
+      name: u,
+      description: `บริการ ${u} โดย ${e.name} — ${e.tags[i % e.tags.length]} stack`,
+    }));
+  }
+  if (!e.useCaseDetails) {
+    e.useCaseDetails = e.usecases.slice(0, 2).map(u => ({
+      title: u, industry: e.tags[0], outcome: "ROI ภายใน 6–12 เดือน",
+    }));
+  }
+  if (!e.tagline) e.tagline = e.description;
+  if (!e.founded) e.founded = 2018 + (parseInt(e.id.slice(1)) % 6);
+  if (!e.employees) e.employees = "20–80";
+  if (!e.headquarters) e.headquarters = "Bangkok, Thailand";
+  if (!e.website) e.website = `${e.name.toLowerCase().replace(/[^a-z]/g, "")}.com`;
+  if (!e.clients) e.clients = ["Confidential — NDA"];
+  if (!e.pricing) e.pricing = "ติดต่อทีมขาย";
+});
+
 export interface Match { exhibitor: Exhibitor; score: number; usecase: string; reason: { th: string; en: string }; }
 
 export const sampleMatches = (pain: string): Match[] => {
