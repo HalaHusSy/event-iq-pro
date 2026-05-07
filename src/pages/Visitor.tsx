@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText } from "lucide-react";
+import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText, ChevronDown, Brain, X, GitCompare, Filter } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
