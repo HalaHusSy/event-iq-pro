@@ -1,3 +1,14 @@
+export interface Service {
+  name: string;
+  description: string;
+}
+
+export interface UseCaseDetail {
+  title: string;
+  industry: string;
+  outcome: string;
+}
+
 export interface Exhibitor {
   id: string;
   name: string;
@@ -7,6 +18,16 @@ export interface Exhibitor {
   tags: string[];
   usecases: string[];
   description: string;
+  // Extended mock data
+  tagline?: string;
+  founded?: number;
+  employees?: string;
+  website?: string;
+  headquarters?: string;
+  services?: Service[];
+  useCaseDetails?: UseCaseDetail[];
+  clients?: string[];
+  pricing?: string;
 }
 
 export const exhibitors: Exhibitor[] = [
