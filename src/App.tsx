@@ -29,6 +29,7 @@ const App = () => (
               <Route path="/exhibitor" element={<Exhibitor />} />
               <Route path="/speaker" element={<Speaker />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/widget" element={<Widget />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
