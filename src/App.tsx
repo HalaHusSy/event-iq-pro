@@ -10,6 +10,7 @@ import Visitor from "./pages/Visitor.tsx";
 import Exhibitor from "./pages/Exhibitor.tsx";
 import Speaker from "./pages/Speaker.tsx";
 import Admin from "./pages/Admin.tsx";
+import Widget from "./pages/Widget.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
