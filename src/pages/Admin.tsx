@@ -7,11 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, MessageCircle, Mic, BarChart3, ShieldCheck, FileText, Settings, Plug, Search, Plus, Check, X } from "lucide-react";
+import { Building2, MessageCircle, Mic, BarChart3, ShieldCheck, FileText, Settings, Plug, Search, Plus, Check, X, Calendar as CalendarIcon, Download, FileDown, Trophy, Activity, Zap, TrendingUp, Users } from "lucide-react";
 import { exhibitors, faqs, memories } from "@/lib/mock";
 import { useI18n } from "@/lib/i18n";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend, Area, AreaChart } from "recharts";
 import { toast } from "sonner";
+import { useEffect, useMemo } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 const navItems = [
   { id: "exhibitors", label: "Exhibitors", icon: Building2 },
@@ -144,10 +150,125 @@ function MemoryModeration() {
   );
 }
 
-const trendData = Array.from({length: 7}).map((_, i) => ({ day: `D${i+1}`, matches: 80+Math.round(Math.random()*60), articles: 5+Math.round(Math.random()*15), precision: 78+Math.round(Math.random()*15) }));
+const RANGE_DAYS: Record<string, number> = { today: 1, "7d": 7, "30d": 30 };
+const seedRand = (n: number) => Math.abs((Math.sin(n * 9301 + 49297) * 233280) % 1);
+const buildTrend = (days: number) => Array.from({ length: days }).map((_, i) => ({
+  day: days <= 1 ? `${i}:00` : `D${i + 1}`,
+  matches: 60 + Math.round(seedRand(i + days) * 80),
+  articles: 4 + Math.round(seedRand(i + days * 2) * 18),
+  precision: 75 + Math.round(seedRand(i + days * 3) * 20),
+}));
+const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--success))", "hsl(217 91% 60%)", "hsl(280 70% 60%)", "hsl(340 75% 55%)"];
+const painCategoryData = [
+  { name: "Manufacturing", value: 32 },
+  { name: "Retail / E-commerce", value: 24 },
+  { name: "Healthcare", value: 18 },
+  { name: "Finance", value: 14 },
+  { name: "Logistics", value: 8 },
+  { name: "Other", value: 4 },
+];
+
+function downloadCSV(filename: string, rows: Record<string, any>[]) {
+  if (!rows.length) return;
+  const headers = Object.keys(rows[0]);
+  const csv = [headers.join(","), ...rows.map(r => headers.map(h => JSON.stringify(r[h] ?? "")).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  toast.success(`Exported ${filename}`);
+}
+function downloadPDF(title: string) {
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.write(`<html><head><title>${title}</title></head><body style="font-family:Inter,sans-serif;padding:40px"><h1>${title}</h1><p>Generated ${new Date().toLocaleString()}</p><p style="color:#666">Chart snapshot — print to PDF from browser dialog.</p></body></html>`);
+  w.print();
+  toast.success(`PDF prepared: ${title}`);
+}
+
+function ChartActions({ title, rows }: { title: string; rows: Record<string, any>[] }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline" className="h-8"><Download className="h-3.5 w-3.5 mr-1" />Export</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => downloadCSV(`${title.replace(/\s+/g, "-").toLowerCase()}.csv`, rows)}>
+          <FileText className="h-4 w-4 mr-2" />CSV
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => downloadPDF(title)}>
+          <FileDown className="h-4 w-4 mr-2" />PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function Analytics() {
+  const [range, setRange] = useState<"today" | "7d" | "30d" | "custom">("7d");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const days = range === "custom" && customRange?.from && customRange?.to
+    ? Math.max(1, Math.ceil((+customRange.to - +customRange.from) / 86400000) + 1)
+    : RANGE_DAYS[range] ?? 7;
+  const trendData = useMemo(() => buildTrend(days), [days]);
+  const precisionData = useMemo(() => trendData.map(d => ({ day: d.day, precision: d.precision })), [trendData]);
+
+  const [active, setActive] = useState(42);
+  useEffect(() => {
+    const t = setInterval(() => setActive(a => Math.max(8, Math.min(120, a + Math.round((Math.random() - 0.45) * 6)))), 2000);
+    return () => clearInterval(t);
+  }, []);
+
+  const leaderboard = useMemo(() => exhibitors.slice(0, 8).map((e, i) => ({
+    ...e,
+    matches: 240 - i * 18 - Math.round(seedRand(i) * 12),
+    conv: (28 - i * 1.6).toFixed(1),
+    rating: (4.9 - i * 0.08).toFixed(2),
+  })), []);
+
+  const apiHealth = [
+    { name: "/tools/match_booth", p50: 180, p95: 420, status: "healthy", calls: "12.4k" },
+    { name: "/tools/answer_faq", p50: 95, p95: 240, status: "healthy", calls: "28.1k" },
+    { name: "/tools/start_recording", p50: 60, p95: 140, status: "healthy", calls: "1.2k" },
+    { name: "/tools/generate_article", p50: 1850, p95: 3200, status: "degraded", calls: "0.9k" },
+    { name: "/tools/get_schedule", p50: 45, p95: 110, status: "healthy", calls: "9.7k" },
+    { name: "/tools/save_memory", p50: 220, p95: 540, status: "healthy", calls: "0.8k" },
+  ];
+  const latencyMax = Math.max(...apiHealth.map(a => a.p95));
+
   return (
     <div className="space-y-5 animate-fade-up">
+      <Card className="p-4 glass flex flex-wrap items-center gap-3 justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          {([["today","Today"],["7d","7 days"],["30d","30 days"]] as const).map(([k, label]) => (
+            <Button key={k} size="sm" variant={range === k ? "default" : "outline"}
+              className={cn("h-8", range === k && "bg-gradient-primary")}
+              onClick={() => setRange(k)}>{label}</Button>
+          ))}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size="sm" variant={range === "custom" ? "default" : "outline"}
+                className={cn("h-8", range === "custom" && "bg-gradient-primary")}>
+                {range === "custom" && customRange?.from
+                  ? `${customRange.from.toLocaleDateString()} → ${customRange.to?.toLocaleDateString() ?? "…"}`
+                  : "Custom"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="range" selected={customRange} onSelect={(r) => { setCustomRange(r); setRange("custom"); }} numberOfMonths={2} className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-1.5 rounded-full border bg-success/10 border-success/30">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
+          </span>
+          <span className="text-xs font-medium"><Users className="inline h-3.5 w-3.5 mr-1" />{active} active visitors using bot</span>
+        </div>
+      </Card>
+
       <div className="grid sm:grid-cols-4 gap-4">
         {[{l:"Total Matches",v:"1,284"},{l:"Memory Articles",v:"89"},{l:"Top FAQ Hits",v:"3,420"},{l:"Match Precision",v:"87%"}].map(s => (
           <Card key={s.l} className="p-4 glass">
@@ -156,42 +277,115 @@ function Analytics() {
           </Card>
         ))}
       </div>
+
       <Card className="p-5 glass">
-        <h3 className="font-semibold mb-4">Matches & Articles (last 7 days)</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold">Matches & Articles ({range === "today" ? "today" : `${days} days`})</h3>
+          <ChartActions title="Matches and Articles" rows={trendData} />
+        </div>
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={trendData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-            <Line type="monotone" dataKey="matches" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
-            <Line type="monotone" dataKey="articles" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 4 }} />
+            <Line type="monotone" dataKey="matches" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="articles" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       </Card>
+
       <div className="grid lg:grid-cols-2 gap-5">
         <Card className="p-5 glass">
-          <h3 className="font-semibold mb-4">Top FAQ Questions</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={[{q:"AI Session",c:124},{q:"Food Court",c:98},{q:"Wifi",c:76},{q:"Parking",c:62},{q:"Speaker",c:54}]}>
-              <XAxis dataKey="q" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" />Match Quality (Precision)</h3>
+            <ChartActions title="Match Precision" rows={precisionData} />
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={precisionData}>
+              <defs>
+                <linearGradient id="precGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+              <YAxis domain={[60, 100]} stroke="hsl(var(--muted-foreground))" fontSize={11} unit="%" />
               <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-              <Bar dataKey="c" fill="hsl(var(--accent))" radius={[6,6,0,0]} />
-            </BarChart>
+              <Area type="monotone" dataKey="precision" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#precGrad)" />
+            </AreaChart>
           </ResponsiveContainer>
         </Card>
+
         <Card className="p-5 glass">
-          <h3 className="font-semibold mb-4">Pain Trending Heatmap</h3>
-          <div className="grid grid-cols-7 gap-1.5">
-            {Array.from({length: 49}).map((_, i) => {
-              const v = Math.random();
-              return <div key={i} className="aspect-square rounded" style={{background: `hsl(var(--primary) / ${0.1 + v * 0.8})`}} title={`${Math.round(v*100)}`} />;
-            })}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Pain Categories by Industry</h3>
+            <ChartActions title="Pain Categories" rows={painCategoryData} />
           </div>
-          <div className="flex justify-between text-xs text-muted-foreground mt-3 font-mono"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie data={painCategoryData} dataKey="value" nameKey="name" cx="40%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2}>
+                {painCategoryData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+              <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+            </PieChart>
+          </ResponsiveContainer>
         </Card>
       </div>
+
+      <Card className="glass">
+        <div className="p-5 border-b flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2"><Trophy className="h-4 w-4 text-accent" />Top Performing Exhibitors</h3>
+          <ChartActions title="Top Exhibitors" rows={leaderboard.map(l => ({ name: l.name, booth: `${l.hall}/${l.booth}`, matches: l.matches, conv: l.conv, rating: l.rating }))} />
+        </div>
+        <Table>
+          <TableHeader><TableRow><TableHead className="w-12">#</TableHead><TableHead>Company</TableHead><TableHead>Booth</TableHead><TableHead className="text-right">Matches</TableHead><TableHead className="text-right">Conv. %</TableHead><TableHead className="text-right">Rating</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {leaderboard.map((l, i) => (
+              <TableRow key={l.id}>
+                <TableCell><Badge variant={i < 3 ? "default" : "secondary"} className={cn("font-mono", i === 0 && "bg-gradient-primary")}>{i + 1}</Badge></TableCell>
+                <TableCell><div className="flex items-center gap-2"><span className="text-xl">{l.logo}</span><span className="font-medium text-sm">{l.name}</span></div></TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{l.hall} / {l.booth}</TableCell>
+                <TableCell className="text-right font-mono">{l.matches}</TableCell>
+                <TableCell className="text-right font-mono text-success">{l.conv}%</TableCell>
+                <TableCell className="text-right font-mono">⭐ {l.rating}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Card className="p-5 glass">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold flex items-center gap-2"><Zap className="h-4 w-4 text-accent" />Botnoi Tool API Health</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Real-time latency per /tools endpoint · auto-refresh 5s</p>
+          </div>
+          <Badge variant="outline" className="gap-1.5"><Activity className="h-3 w-3 text-success animate-pulse" />Live</Badge>
+        </div>
+        <div className="space-y-2.5">
+          {apiHealth.map(a => (
+            <div key={a.name} className="p-3 rounded-lg border space-y-2">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className={cn("h-2 w-2 rounded-full", a.status === "healthy" ? "bg-success animate-pulse" : "bg-accent")} />
+                  <code className="font-mono text-xs">{a.name}</code>
+                  <Badge variant="secondary" className="text-[10px] h-5">{a.calls} calls</Badge>
+                </div>
+                <div className="flex items-center gap-4 text-xs font-mono">
+                  <span className="text-muted-foreground">p50 <span className="text-foreground">{a.p50}ms</span></span>
+                  <span className="text-muted-foreground">p95 <span className={cn(a.p95 > 1000 ? "text-accent" : "text-foreground")}>{a.p95}ms</span></span>
+                </div>
+              </div>
+              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                <div className={cn("h-full rounded-full", a.p95 > 1000 ? "bg-accent" : "bg-gradient-primary")} style={{ width: `${(a.p95 / latencyMax) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
