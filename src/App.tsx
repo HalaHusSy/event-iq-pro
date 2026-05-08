@@ -10,6 +10,7 @@ import Visitor from "./pages/Visitor.tsx";
 import Exhibitor from "./pages/Exhibitor.tsx";
 import Speaker from "./pages/Speaker.tsx";
 import Admin from "./pages/Admin.tsx";
+import Widget from "./pages/Widget.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/exhibitor" element={<Exhibitor />} />
               <Route path="/speaker" element={<Speaker />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/widget" element={<Widget />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
