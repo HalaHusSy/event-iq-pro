@@ -7,11 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, MessageCircle, Mic, BarChart3, ShieldCheck, FileText, Settings, Plug, Search, Plus, Check, X } from "lucide-react";
+import { Building2, MessageCircle, Mic, BarChart3, ShieldCheck, FileText, Settings, Plug, Search, Plus, Check, X, Calendar as CalendarIcon, Download, FileDown, Trophy, Activity, Zap, TrendingUp, Users } from "lucide-react";
 import { exhibitors, faqs, memories } from "@/lib/mock";
 import { useI18n } from "@/lib/i18n";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend, Area, AreaChart } from "recharts";
 import { toast } from "sonner";
+import { useEffect, useMemo } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 const navItems = [
   { id: "exhibitors", label: "Exhibitors", icon: Building2 },
