@@ -17,6 +17,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
 import { Match, sampleMatches, faqs, sessions } from "@/lib/mock";
 import { toast } from "sonner";
+import MemoryTab from "@/components/visitor/MemoryTab";
+import SessionsTab from "@/components/visitor/SessionsTab";
 
 const tabs = [
   { id: "find", icon: Target, key: "tab.find" },
@@ -55,8 +57,8 @@ export default function VisitorPortal() {
           <section className="min-w-0">
             {active === "find" && <FindBooth />}
             {active === "ask" && <AskEvent />}
-            {active === "memory" && <EventMemory />}
-            {active === "sessions" && <SessionsList />}
+            {active === "memory" && <MemoryTab />}
+            {active === "sessions" && <SessionsTab />}
           </section>
         </div>
       </div>

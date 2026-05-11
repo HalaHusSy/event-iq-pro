@@ -1,9 +1,11 @@
 import { ReactNode } from "react";
 import SiteHeader from "./SiteHeader";
+import { MockBanner } from "./MockBanner";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
+      <MockBanner />
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">
