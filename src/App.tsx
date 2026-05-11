@@ -12,6 +12,7 @@ import Speaker from "./pages/Speaker.tsx";
 import Admin from "./pages/Admin.tsx";
 import Widget from "./pages/Widget.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/widget" element={<Widget />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <BotnoiWidget />
           </BrowserRouter>
         </TooltipProvider>
       </I18nProvider>
