@@ -1,0 +1,9 @@
+id,name_display,role,industry,company_size,budget_range_thb_min,budget_range_thb_max,pain_point_th,pain_point_en,expected_top_match_ids,conversation_starter_th,conversation_starter_en
+p01,"Khun Apinya S., Head of CX, Thai Bank",Head of CX,Banking,Enterprise,500000,5000000,อยากลดต้นทุน call center 40% ใน 6 เดือน,Reduce call center cost by 40% in 6 months,ex01 | ex15,"พี่ค่ะ ที่ธนาคารตอนนี้ call center ค่าใช้จ่ายเดือนละหลายล้าน อยากลดด้วย AI ค่ะ ภาษาไทยต้องเก่งนะ","Our bank call center costs millions per month. We want AI to cut it. Must speak Thai well."
+p02,,,,,,,,,,,
+p03,,,,,,,,,,,
+p04,,,,,,,,,,,
+p05,,,,,,,,,,,
+p06,,,,,,,,,,,
+p07,,,,,,,,,,,
+p08,,,,,,,,,,,
