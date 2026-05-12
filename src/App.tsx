@@ -11,6 +11,8 @@ import Exhibitor from "./pages/Exhibitor.tsx";
 import Speaker from "./pages/Speaker.tsx";
 import Admin from "./pages/Admin.tsx";
 import Widget from "./pages/Widget.tsx";
+import Events from "./pages/Events.tsx";
+import Platform from "./pages/Platform.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
 
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/speaker" element={<Speaker />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/widget" element={<Widget />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/platform" element={<Platform />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BotnoiWidget />

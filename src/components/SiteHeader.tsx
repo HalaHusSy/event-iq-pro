@@ -1,18 +1,21 @@
-import { Link, NavLink } from "react-router-dom";
-import { Moon, Sun, Sparkles, Languages } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Moon, Sun, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
+import { NavLink } from "react-router-dom";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function SiteHeader() {
   const { theme, toggle } = useTheme();
-  const { lang, setLang, t } = useI18n();
+  const { t } = useI18n();
 
   const links = [
     { to: "/", label: t("nav.home") },
+    { to: "/events", label: t("nav.events") },
+    { to: "/platform", label: t("nav.platform") },
     { to: "/visitor", label: t("nav.visitor") },
     { to: "/exhibitor", label: t("nav.exhibitor") },
-    { to: "/speaker", label: t("nav.speaker") },
     { to: "/admin", label: t("nav.admin") },
   ];
 
@@ -34,10 +37,7 @@ export default function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setLang(lang === "th" ? "en" : "th")} className="gap-1.5">
-            <Languages className="h-4 w-4" />
-            <span className="font-mono text-xs uppercase">{lang}</span>
-          </Button>
+          <LanguageSwitcher />
           <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
             {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
           </Button>
