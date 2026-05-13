@@ -17,6 +17,7 @@ import ApiTest from "./pages/ApiTest.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { BotnoiMount } from "./components/botnoi/BotnoiMount";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
               } />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <BotnoiMount />
           </BrowserRouter>
         </TooltipProvider>
       </I18nProvider>

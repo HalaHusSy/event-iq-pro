@@ -15,6 +15,10 @@ interface BotnoiWidgetProps {
   loggedInGreeting?: string;
   defaultOpen?: boolean;
   botLogo?: string;
+  /** When false, the widget DOM is hidden via display:none.
+   *  Useful when staying on admin/platform routes where we don't want the
+   *  visitor-facing chat to pop up. */
+  enabled?: boolean;
 }
 
 /**
@@ -37,6 +41,7 @@ export function BotnoiWidget({
   loggedInGreeting = 'ยินดีต้อนรับกลับมาค่ะ',
   defaultOpen = false,
   botLogo,
+  enabled = true,
 }: BotnoiWidgetProps = {}) {
   useEffect(() => {
     // 1) ensure #bn-root exists
@@ -83,6 +88,22 @@ export function BotnoiWidget({
       } catch {}
     }
   }, [botId, botName, themeColor, locale, greetingMessage, loggedInGreeting, defaultOpen, botLogo]);
+
+  // Show / hide based on `enabled` without unmounting the widget DOM
+  // (Botnoi's iframe loads once and we don't want to re-init on every nav).
+  useEffect(() => {
+    const apply = () => {
+      const display = enabled ? '' : 'none';
+      const root = document.getElementById('bn-root');
+      const chat = document.querySelector<HTMLDivElement>('.bn-customerchat');
+      if (root) root.style.display = display;
+      if (chat) chat.style.display = display;
+    };
+    apply();
+    // Botnoi may inject extra DOM after script loads; re-apply on next tick.
+    const t = window.setTimeout(apply, 500);
+    return () => window.clearTimeout(t);
+  }, [enabled]);
 
   // The widget renders itself into #bn-root / .bn-customerchat outside React tree
   return null;
