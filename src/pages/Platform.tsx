@@ -10,7 +10,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Calendar, MapPin, Users, Bot, MessageSquare, CheckCircle2, XCircle, Pencil, Crown, Building2, Sparkles } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Bot, MessageSquare, CheckCircle2, XCircle, Pencil, Crown, Building2, Sparkles, Activity } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PLATFORM_EVENTS, type PlatformEvent } from "@/lib/mock/events";
 import { EXHIBITORS } from "@/lib/mock/exhibitors";
 import { useI18n } from "@/lib/i18n";
@@ -38,9 +39,17 @@ export default function Platform() {
             <h1 className="text-3xl font-bold gradient-text">{t("platform.title")}</h1>
             <p className="text-muted-foreground mt-1">{t("platform.sub")}</p>
           </div>
-          <div className="text-right text-sm">
-            <div className="text-muted-foreground">Logged in as</div>
-            <div className="font-semibold">root@eventiq.app</div>
+          <div className="flex items-center gap-3">
+            <div className="text-right text-sm">
+              <div className="text-muted-foreground">Logged in as</div>
+              <div className="font-semibold">root@eventiq.app</div>
+            </div>
+            <Link to="/platform/api-test">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Activity className="h-4 w-4" />
+                API Playground
+              </Button>
+            </Link>
           </div>
         </div>
 

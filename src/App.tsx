@@ -13,6 +13,7 @@ import Admin from "./pages/Admin.tsx";
 import Widget from "./pages/Widget.tsx";
 import Events from "./pages/Events.tsx";
 import Platform from "./pages/Platform.tsx";
+import ApiTest from "./pages/ApiTest.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -46,6 +47,9 @@ const App = () => (
               } />
               <Route path="/platform" element={
                 <ProtectedRoute allowed={["root"]}><Platform /></ProtectedRoute>
+              } />
+              <Route path="/platform/api-test" element={
+                <ProtectedRoute allowed={["root"]}><ApiTest /></ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
             </Routes>
