@@ -23,6 +23,7 @@ export default function SiteHeader() {
   const allLinks = [
     { to: "/", label: t("nav.home"), roles: null as Role[] | null },
     { to: "/events", label: t("nav.events"), roles: null },
+    { to: "/api-docs", label: "API Docs", roles: null },
     { to: "/platform", label: t("nav.platform"), roles: ["root"] as Role[] },
     { to: "/visitor", label: t("nav.visitor"), roles: ["visitor", "admin", "root"] as Role[] },
     { to: "/exhibitor", label: t("nav.exhibitor"), roles: ["admin", "root"] as Role[] },

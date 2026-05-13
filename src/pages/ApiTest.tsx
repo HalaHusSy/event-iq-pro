@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Activity, Search, MessageCircleQuestion, Database, RefreshCw, Send, ExternalLink, Copy, Check } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Activity, Search, MessageCircleQuestion, Database, RefreshCw, Send, ExternalLink, Copy, Check, BookOpen } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,15 @@ export default function ApiTest() {
               ทดสอบ endpoints ของ EventIQ API ก่อนนำ URL ไป config ใน Botnoi Console
             </p>
           </div>
-          <HealthBadge status={healthStatus} />
+          <div className="flex items-center gap-2">
+            <Link to="/api-docs">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <BookOpen className="h-4 w-4" />
+                API Docs
+              </Button>
+            </Link>
+            <HealthBadge status={healthStatus} />
+          </div>
         </div>
 
         <BaseUrlCard />

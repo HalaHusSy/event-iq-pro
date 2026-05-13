@@ -14,6 +14,7 @@ import Widget from "./pages/Widget.tsx";
 import Events from "./pages/Events.tsx";
 import Platform from "./pages/Platform.tsx";
 import ApiTest from "./pages/ApiTest.tsx";
+import ApiDocs from "./pages/ApiDocs.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/events" element={<Events />} />
               <Route path="/widget" element={<Widget />} />
+              <Route path="/api-docs" element={<ApiDocs />} />
               <Route path="/visitor" element={
                 <ProtectedRoute allowed={["visitor", "admin", "root"]}><Visitor /></ProtectedRoute>
               } />
