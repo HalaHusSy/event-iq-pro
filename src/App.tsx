@@ -13,8 +13,9 @@ import Admin from "./pages/Admin.tsx";
 import Widget from "./pages/Widget.tsx";
 import Events from "./pages/Events.tsx";
 import Platform from "./pages/Platform.tsx";
+import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -28,16 +29,26 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/visitor" element={<Visitor />} />
-              <Route path="/exhibitor" element={<Exhibitor />} />
-              <Route path="/speaker" element={<Speaker />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/widget" element={<Widget />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/events" element={<Events />} />
-              <Route path="/platform" element={<Platform />} />
+              <Route path="/widget" element={<Widget />} />
+              <Route path="/visitor" element={
+                <ProtectedRoute allowed={["visitor", "admin", "root"]}><Visitor /></ProtectedRoute>
+              } />
+              <Route path="/exhibitor" element={
+                <ProtectedRoute allowed={["admin", "root"]}><Exhibitor /></ProtectedRoute>
+              } />
+              <Route path="/speaker" element={
+                <ProtectedRoute allowed={["admin", "root"]}><Speaker /></ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute allowed={["admin", "root"]}><Admin /></ProtectedRoute>
+              } />
+              <Route path="/platform" element={
+                <ProtectedRoute allowed={["root"]}><Platform /></ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <BotnoiWidget />
           </BrowserRouter>
         </TooltipProvider>
       </I18nProvider>
