@@ -5,14 +5,14 @@
  * Source: Google Sheet "EventIQ - Exhibitors Mock Data"
  *   https://docs.google.com/spreadsheets/d/1Jez5HQ0SsPmvHoceEWTGHNIBdmUprR_1ImLNg9hNN78/edit
  *
- * Generated at: 2026-05-14T07:47:45.158Z
+ * Generated at: 2026-05-14T07:57:16.551Z
  * Total rows in sheet: 30
- * Validation errors: 2
- * Valid exhibitors: 28
+ * Validation errors: 0
+ * Valid exhibitors: 30
  */
-import type { Exhibitor } from './exhibitor.zod';
+import type { ExhibitorLenient } from './exhibitor.zod';
 
-export const EXHIBITORS_FROM_SHEET: Exhibitor[] = [
+export const EXHIBITORS_FROM_SHEET: ExhibitorLenient[] = [
   {
     "id": "ex01",
     "name": "Botnoi Group",
@@ -732,6 +732,148 @@ export const EXHIBITORS_FROM_SHEET: Exhibitor[] = [
     ]
   },
   {
+    "id": "ex06",
+    "name": "Siemens",
+    "logo_url": "🏭",
+    "booth_no": "B-05",
+    "hall": "Hall B",
+    "industry": "Other",
+    "sub_industries": [
+      "Industrial Automation",
+      "Digital Twin",
+      "Industrial IoT",
+      "Manufacturing Software"
+    ],
+    "solution_categories": [
+      "Other",
+      "Other",
+      "Other",
+      "Other"
+    ],
+    "tagline_th": "เชื่อมโลกจริงและโลกดิจิทัลเพื่อโรงงานอัจฉริยะ",
+    "tagline_en": "Combining the real and digital worlds for smart manufacturing",
+    "description_th": "Siemens ให้บริการ industrial automation, digital twin, industrial software และ smart infrastructure สำหรับโรงงานและอุตสาหกรรม",
+    "description_en": "Siemens provides industrial automation, digital twin technology, industrial software and smart infrastructure for factories and industrial enterprises.",
+    "long_pitch_en": "Siemens helps manufacturers reduce downtime, increase production efficiency, improve quality, scale industrial automation, connect machines, build digital twins, support compliance and modernize factory operations. Visitors searching for smart factory, industrial IoT, predictive maintenance, digital twin, automation, energy efficiency, manufacturing quality or scale should visit this booth.",
+    "problem_statements_en": [
+      "Factory downtime",
+      "Low production visibility",
+      "Manual quality inspection",
+      "Disconnected machines",
+      "Energy inefficiency"
+    ],
+    "unique_value_props": [
+      "Deep industrial domain expertise",
+      "Digital twin and simulation strength",
+      "Global automation portfolio",
+      "Strong manufacturing ecosystem"
+    ],
+    "target_company_sizes": [
+      "SME",
+      "Enterprise"
+    ],
+    "target_industries": [
+      "Manufacturing",
+      "Automotive",
+      "Energy",
+      "Other",
+      "Other",
+      "Other"
+    ],
+    "target_roles": [
+      "Plant Manager",
+      "Operations Director",
+      "Manufacturing Engineer",
+      "CTO",
+      "Maintenance Manager",
+      "Industrial Automation Lead"
+    ],
+    "geographic_focus": [
+      "Global"
+    ],
+    "tech_stack": [
+      "PLC",
+      "Industrial IoT",
+      "Digital Twin",
+      "Siemens Xcelerator",
+      "Industrial Edge",
+      "SCADA"
+    ],
+    "integrations": [
+      "SAP",
+      "Microsoft Azure",
+      "AWS",
+      "NVIDIA",
+      "Teamcenter",
+      "Mendix"
+    ],
+    "deployment_options": [
+      "cloud",
+      "cloud",
+      "cloud"
+    ],
+    "pricing_tier": "enterprise",
+    "pricing_model": "subscription",
+    "pricing_starts_at_thb": 250000,
+    "pricing_note_th": "คิดตาม scope โครงการ",
+    "pricing_note_en": "Project pricing depends on solution scope, hardware, software license and implementation requirements.",
+    "founded_year": 2020,
+    "employee_count": "11-50",
+    "headquarters": "Munich, Germany",
+    "notable_clients": [
+      "BMW",
+      "Mercedes-Benz",
+      "Shell",
+      "BASF",
+      "Volkswagen"
+    ],
+    "certifications": [
+      "ISO 9001",
+      "ISO 27001",
+      "IEC 62443 related portfolio"
+    ],
+    "awards": [
+      "Hannover Messe Hermes Award finalist",
+      "German Innovation Award recognition"
+    ],
+    "demo_video_url": "https://www.siemens.com/global/en/company/fairs-events.html",
+    "case_study_urls": [
+      "https://www.siemens.com/global/en/company/stories.html"
+    ],
+    "brochure_url": "https://www.siemens.com/global/en/company/topic-areas/digital-enterprise.html",
+    "booth_activities_th": [
+      "ชม digital twin showcase",
+      "ทดลอง smart factory simulation",
+      "ปรึกษาโรงงานอัจฉริยะ"
+    ],
+    "booth_activities_en": [
+      "See digital twin showcase",
+      "Try smart factory simulation",
+      "Discuss smart manufacturing roadmap"
+    ],
+    "website": "https://www.siemens.com",
+    "contact_email": "contact@siemens.com",
+    "contact_phone": "+66-2-xxx-xxxx",
+    "contact_line_id": "@eventiq-factory",
+    "use_cases": [
+      {
+        "title": "Digital Twin for Factory Planning",
+        "problem": "Manufacturers need to test production changes without disrupting operations.",
+        "outcome": "Simulate factory processes before physical implementation."
+      },
+      {
+        "title": "Predictive Maintenance",
+        "problem": "Unexpected machine downtime increases production cost.",
+        "outcome": "Monitor equipment data and plan maintenance before failure."
+      },
+      {
+        "title": "Industrial Automation Modernization",
+        "problem": "Legacy machines and disconnected systems limit production visibility.",
+        "outcome": "Connect industrial systems and automate factory workflows."
+      }
+    ]
+  },
+  {
     "id": "ex07",
     "name": "Palo Alto Networks",
     "logo_url": "🛡️",
@@ -1010,6 +1152,140 @@ export const EXHIBITORS_FROM_SHEET: Exhibitor[] = [
         "title": "Digital Twin Simulation",
         "problem": "Manufacturers cannot safely test production changes in real environments.",
         "outcome": "Simulate factories and operations with Omniverse digital twins."
+      }
+    ]
+  },
+  {
+    "id": "ex09",
+    "name": "Schneider Electric",
+    "logo_url": "⚡",
+    "booth_no": "B-08",
+    "hall": "Hall B",
+    "industry": "Other",
+    "sub_industries": [
+      "Energy Efficiency",
+      "Smart Building",
+      "Sustainability",
+      "Industrial Automation"
+    ],
+    "solution_categories": [
+      "Other",
+      "Other",
+      "Other",
+      "Other"
+    ],
+    "tagline_th": "เพิ่มประสิทธิภาพพลังงานและความยั่งยืนให้ธุรกิจ",
+    "tagline_en": "Energy management and automation for sustainability",
+    "description_th": "Schneider Electric ให้บริการ energy management, automation และ sustainability solutions สำหรับโรงงาน อาคาร และโครงสร้างพื้นฐาน",
+    "description_en": "Schneider Electric provides energy management, automation and sustainability solutions for buildings, factories and infrastructure.",
+    "long_pitch_en": "Schneider Electric helps organizations reduce energy cost, improve sustainability, optimize facility operations, monitor carbon footprint and modernize industrial energy systems. Visitors searching for energy saving, sustainability, smart building, ESG, industrial automation, facility management, compliance or carbon reduction should visit this booth.",
+    "problem_statements_en": [
+      "High energy cost",
+      "Poor sustainability visibility",
+      "Manual facility monitoring",
+      "Carbon reporting pressure",
+      "Energy inefficiency"
+    ],
+    "unique_value_props": [
+      "Strong sustainability expertise",
+      "Global energy ecosystem",
+      "Smart building platform",
+      "Industrial automation portfolio"
+    ],
+    "target_company_sizes": [
+      "SME",
+      "Enterprise"
+    ],
+    "target_industries": [
+      "Manufacturing",
+      "Real Estate",
+      "Energy",
+      "Logistics",
+      "Healthcare"
+    ],
+    "target_roles": [
+      "Facility Manager",
+      "Sustainability Officer",
+      "Operations Director",
+      "Plant Manager",
+      "CTO"
+    ],
+    "geographic_focus": [
+      "Global"
+    ],
+    "tech_stack": [
+      "IoT",
+      "EcoStruxure",
+      "Energy Analytics",
+      "Automation"
+    ],
+    "integrations": [
+      "SAP",
+      "Microsoft Azure",
+      "AVEVA",
+      "EcoStruxure"
+    ],
+    "deployment_options": [
+      "cloud",
+      "cloud",
+      "cloud"
+    ],
+    "pricing_tier": "enterprise",
+    "pricing_model": "subscription",
+    "pricing_starts_at_thb": 200000,
+    "pricing_note_th": "เริ่มต้นตามขนาด facility และ solution package",
+    "pricing_note_en": "Project pricing depends on facility size and implementation scope.",
+    "founded_year": 2020,
+    "employee_count": "11-50",
+    "headquarters": "Rueil-Malmaison, France",
+    "notable_clients": [
+      "Walmart",
+      "Hilton",
+      "PepsiCo",
+      "DHL"
+    ],
+    "certifications": [
+      "ISO 50001",
+      "ISO 27001",
+      "Sustainability Compliance"
+    ],
+    "awards": [
+      "Time Magazine Most Sustainable Companies"
+    ],
+    "demo_video_url": "https://www.se.com/ww/en/",
+    "case_study_urls": [
+      "https://www.se.com/ww/en/work/campaign/life-is-on/case-study/"
+    ],
+    "brochure_url": "https://www.se.com/ww/en/download/",
+    "booth_activities_th": [
+      "ทดลอง dashboard พลังงาน",
+      "ประเมิน energy saving ฟรี",
+      "ดู smart building demo"
+    ],
+    "booth_activities_en": [
+      "Explore energy dashboard",
+      "Free energy assessment",
+      "Watch smart building demo"
+    ],
+    "website": "https://www.se.com",
+    "contact_email": "contact@se.com",
+    "contact_phone": "+66-2-xxx-xxxx",
+    "contact_line_id": "@eventiq-energy",
+    "use_cases": [
+      {
+        "title": "Energy Monitoring",
+        "problem": "Organizations cannot identify where energy waste occurs.",
+        "outcome": "Gain visibility into energy usage and reduce operating cost."
+      },
+      {
+        "title": "Smart Building Optimization",
+        "problem": "Facility operations rely on disconnected systems.",
+        "outcome": "Automate building systems and improve operational efficiency."
+      },
+      {
+        "title": "Carbon Tracking",
+        "problem": "Companies struggle to measure sustainability performance.",
+        "outcome": "Track carbon footprint and ESG metrics more accurately."
       }
     ]
   },

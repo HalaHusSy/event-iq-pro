@@ -186,7 +186,9 @@ function transformRow(raw: Record<string, string>): Record<string, unknown> {
   for (const field of NUMERIC_FIELDS) {
     if (raw[field]) {
       const n = Number(raw[field].replace(/[^\d.-]/g, ''));
-      if (Number.isFinite(n) && n > 0) {
+      // founded_year must be a sane year; reject 0, small numbers, etc.
+      const minOk = field === 'founded_year' ? n >= 1900 : n >= 0;
+      if (Number.isFinite(n) && minOk) {
         out[field] = n;
       } else {
         delete out[field]; // let Zod default kick in
@@ -231,9 +233,9 @@ function renderModule(exhibitors: ExhibitorLenient[], totalRows: number, errorCo
  * Validation errors: ${errorCount}
  * Valid exhibitors: ${exhibitors.length}
  */
-import type { Exhibitor } from './exhibitor.zod';
+import type { ExhibitorLenient } from './exhibitor.zod';
 
-export const EXHIBITORS_FROM_SHEET: Exhibitor[] = ${body};
+export const EXHIBITORS_FROM_SHEET: ExhibitorLenient[] = ${body};
 `;
 }
 
