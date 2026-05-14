@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+/**
+ * Canonical exhibitor schema.
+ *
+ * Two parse modes:
+ *   - `ExhibitorSchema`        ← strict, used for new seeds and tests
+ *   - `ExhibitorSchemaLenient` ← permissive, used by the sheet-sync importer
+ *     so partial DS work-in-progress still lands in the generated file
+ *     (with safe defaults) instead of being dropped wholesale.
+ */
+
 export const IndustryEnum = z.enum([
   'Finance', 'Banking', 'Insurance',
   'Healthcare', 'Pharmaceutical',
@@ -22,13 +32,9 @@ export const SolutionCategoryEnum = z.enum([
 ]);
 
 export const CompanySizeEnum = z.enum(['Startup', 'SME', 'Mid-Market', 'Enterprise', 'Government']);
-
 export const EmployeeCountEnum = z.enum(['1-10', '11-50', '51-200', '201-500', '500+']);
-
 export const DeploymentOptionEnum = z.enum(['cloud', 'on-prem', 'hybrid', 'edge']);
-
 export const PricingTierEnum = z.enum(['startup', 'mid-market', 'enterprise']);
-
 export const PricingModelEnum = z.enum(['subscription', 'usage', 'license', 'project']);
 
 export const UseCaseSchema = z.object({
@@ -41,6 +47,7 @@ export const UseCaseSchema = z.object({
   customer_anonymized: z.string().min(1),
 });
 
+// ── Strict schema (production / seeds) ────────────────────────────────────
 export const ExhibitorSchema = z.object({
   id: z.string().regex(/^ex\d{2}$/, 'id must match exNN format'),
   name: z.string().min(1),
@@ -102,7 +109,85 @@ export const ExhibitorSchema = z.object({
   embedding: z.array(z.number()).optional(),
 });
 
+// ── Lenient schema (importer) ─────────────────────────────────────────────
+// Each field gets a safe default so a half-filled DS row still becomes a
+// usable record. Enum fields use `.catch()` to map invalid values to 'Other'
+// instead of rejecting the whole row.
+const lenientEnumFallback = <T extends z.ZodEnum<any>>(en: T, fallback: z.infer<T>) =>
+  en.catch(fallback as any);
+
+export const ExhibitorSchemaLenient = z.object({
+  id: z.string().regex(/^ex\d{2}$/),
+  name: z.string().default(''),
+  logo_url: z.string().default('📦'),
+  booth_no: z.string().default('TBD'),
+  hall: z.string().default('TBD'),
+
+  industry: lenientEnumFallback(IndustryEnum, 'Other'),
+  sub_industries: z.array(z.string()).default([]),
+  solution_categories: z.array(z.string().transform((s) => {
+    const valid = SolutionCategoryEnum.options as readonly string[];
+    return valid.includes(s) ? s : 'Other';
+  })).default([]) as unknown as z.ZodArray<typeof SolutionCategoryEnum>,
+
+  tagline_th: z.string().default(''),
+  tagline_en: z.string().default(''),
+  description_th: z.string().default(''),
+  description_en: z.string().default(''),
+  long_pitch_en: z.string().default(''),
+
+  problem_statements_en: z.array(z.string()).default([]),
+  unique_value_props: z.array(z.string()).default([]),
+
+  target_company_sizes: z.array(z.string().transform((s) => {
+    const valid = CompanySizeEnum.options as readonly string[];
+    return valid.includes(s) ? s : 'SME';
+  })).default([]) as unknown as z.ZodArray<typeof CompanySizeEnum>,
+  target_industries: z.array(z.string().transform((s) => {
+    const valid = IndustryEnum.options as readonly string[];
+    return valid.includes(s) ? s : 'Other';
+  })).default([]) as unknown as z.ZodArray<typeof IndustryEnum>,
+  target_roles: z.array(z.string()).default([]),
+  geographic_focus: z.array(z.string()).default([]),
+
+  tech_stack: z.array(z.string()).default([]),
+  integrations: z.array(z.string()).default([]),
+  deployment_options: z.array(z.string().transform((s) => {
+    const valid = DeploymentOptionEnum.options as readonly string[];
+    return valid.includes(s) ? s : 'cloud';
+  })).default([]) as unknown as z.ZodArray<typeof DeploymentOptionEnum>,
+
+  pricing_tier: lenientEnumFallback(PricingTierEnum, 'mid-market'),
+  pricing_model: lenientEnumFallback(PricingModelEnum, 'subscription'),
+  pricing_starts_at_thb: z.number().int().nonnegative().default(0),
+  pricing_note_th: z.string().default(''),
+  pricing_note_en: z.string().default(''),
+
+  founded_year: z.number().int().min(1900).max(2030).default(2020),
+  employee_count: lenientEnumFallback(EmployeeCountEnum, '11-50'),
+  headquarters: z.string().default('Bangkok, Thailand'),
+
+  notable_clients: z.array(z.string()).default([]),
+  certifications: z.array(z.string()).default([]),
+  awards: z.array(z.string()).default([]),
+
+  demo_video_url: z.string().optional().or(z.literal('')).default(''),
+  case_study_urls: z.array(z.string()).default([]),
+  brochure_url: z.string().optional().or(z.literal('')).default(''),
+
+  booth_activities_th: z.array(z.string()).default([]),
+  booth_activities_en: z.array(z.string()).default([]),
+
+  website: z.string().default(''),
+  contact_email: z.string().default(''),
+  contact_phone: z.string().default(''),
+  contact_line_id: z.string().default(''),
+
+  use_cases: z.array(z.any()).default([]),
+});
+
 export type Exhibitor = z.infer<typeof ExhibitorSchema>;
+export type ExhibitorLenient = z.infer<typeof ExhibitorSchemaLenient>;
 export type Industry = z.infer<typeof IndustryEnum>;
 export type SolutionCategory = z.infer<typeof SolutionCategoryEnum>;
 export type CompanySize = z.infer<typeof CompanySizeEnum>;
@@ -112,16 +197,16 @@ export type PricingTier = z.infer<typeof PricingTierEnum>;
 export type PricingModel = z.infer<typeof PricingModelEnum>;
 export type UseCase = z.infer<typeof UseCaseSchema>;
 
-export function buildEmbeddingText(e: Exhibitor): string {
+export function buildEmbeddingText(e: Exhibitor | ExhibitorLenient): string {
   return [
     e.name,
     e.tagline_en,
     e.long_pitch_en,
-    `Industry: ${e.industry}. Sub: ${e.sub_industries.join(', ')}.`,
-    `Categories: ${e.solution_categories.join(', ')}.`,
-    `Problems solved: ${e.problem_statements_en.join(' ')}`,
-    `Use cases: ${e.use_cases.map((u) => `${u.problem_en} -> ${u.outcome_metric}`).join('. ')}`,
-    `Tech: ${e.tech_stack.join(', ')}. Integrations: ${e.integrations.join(', ')}.`,
-    `Target: ${e.target_company_sizes.join('/')} in ${e.target_industries.join('/')}.`,
+    `Industry: ${e.industry}. Sub: ${(e.sub_industries ?? []).join(', ')}.`,
+    `Categories: ${(e.solution_categories ?? []).join(', ')}.`,
+    `Problems solved: ${(e.problem_statements_en ?? []).join(' ')}`,
+    `Use cases: ${((e as any).use_cases ?? []).map((u: any) => `${u.problem_en ?? ''} -> ${u.outcome_metric ?? ''}`).join('. ')}`,
+    `Tech: ${(e.tech_stack ?? []).join(', ')}. Integrations: ${(e.integrations ?? []).join(', ')}.`,
+    `Target: ${(e.target_company_sizes ?? []).join('/')} in ${(e.target_industries ?? []).join('/')}.`,
   ].join('\n');
 }

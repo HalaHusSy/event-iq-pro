@@ -2,16 +2,42 @@ import { EXHIBITORS_CANONICAL } from '../../src/lib/mock/exhibitors.canonical';
 import type { Exhibitor } from '../../src/lib/mock/exhibitor.zod';
 
 /**
- * Single source of truth for serverless functions. For pitch v1 we read
- * from the canonical seed module. When `scripts/sync-sheet.ts` lands,
- * this will read from `src/lib/mock/exhibitors.generated.ts` instead.
+ * Single source of truth for serverless functions.
+ *
+ * Priority:
+ *   1. `exhibitors.generated.ts` — produced by `npm run sync:sheet` from
+ *      the Google Sheet (30 rows). Created on first sync.
+ *   2. `exhibitors.canonical.ts` — 2 hand-curated seed records, always
+ *      present as fallback so the API works before any sync runs.
+ *
+ * The dynamic require keeps the build green when the generated file
+ * doesn't exist yet (e.g. CI on first run).
  */
+let cached: Exhibitor[] | null = null;
+
+function loadExhibitors(): Exhibitor[] {
+  if (cached) return cached;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require('../../src/lib/mock/exhibitors.generated');
+    const fromSheet: Exhibitor[] | undefined = mod.EXHIBITORS_FROM_SHEET;
+    if (Array.isArray(fromSheet) && fromSheet.length > 0) {
+      cached = fromSheet;
+      return cached;
+    }
+  } catch {
+    // generated file not present — fall back to seeds
+  }
+  cached = EXHIBITORS_CANONICAL;
+  return cached;
+}
+
 export function getExhibitors(): Exhibitor[] {
-  return EXHIBITORS_CANONICAL;
+  return loadExhibitors();
 }
 
 export function getExhibitorById(id: string): Exhibitor | undefined {
-  return EXHIBITORS_CANONICAL.find((e) => e.id === id);
+  return loadExhibitors().find((e) => e.id === id);
 }
 
 /**
