@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -c safe.directory=* add data/)",
+      "Bash(git -c safe.directory=* status)",
+      "Bash(git -c 'safe.directory=*' commit -m 'data: add exhibitor schema + DS templates for pitch sprint *)",
+      "Bash(npx vitest *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(git -c safe.directory=* add src/lib/api/eventiq-client.ts src/pages/ApiTest.tsx src/App.tsx src/pages/Platform.tsx)",
+      "Bash(git -c 'safe.directory=*' commit -m 'feat: API Playground at /platform/api-test \\(root only\\) *)",
+      "Bash(git -c safe.directory=* push origin solo_test1)"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Globe, BookOpen, KeyRound, Copy, Check, ExternalLink, Heart, Building2, Search, MessageCircleQuestion, Target, RefreshCw, PenLine, Sparkles } from "lucide-react";
+import { Globe, BookOpen, KeyRound, Copy, Check, ExternalLink, Heart, Building2, Search, MessageCircleQuestion, Target, RefreshCw, PenLine, Sparkles, Calendar, MapPin, AlertCircle } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,120 @@ interface Endpoint {
 }
 
 const ENDPOINTS: Endpoint[] = [
+  {
+    emoji: Calendar,
+    name: "List Events",
+    description: "ดึงรายการ event ทั้งหมด — 5 events พร้อม venue summary, จำนวนบูธ, สถานะ",
+    method: "GET",
+    path: "/api/events?status=upcoming",
+    headers: { "Content-Type": "application/json" },
+    response: JSON.stringify({
+      count: 5,
+      items: [
+        {
+          id: "evt-tech-summit-2026",
+          name: "Tech Summit 2026",
+          cover: "🚀",
+          tagline_th: "งานเทคโนโลยีที่ใหญ่ที่สุดของเอเชียตะวันออกเฉียงใต้",
+          start_date: "2026-06-15",
+          end_date: "2026-06-17",
+          status: "upcoming",
+          expected_visitors: 12000,
+          venue_summary: { name: "BITEC Bangna", district: "Bang Na", province: "Bangkok", total_floors: 3, parking_spots: 3500 },
+          exhibitor_count: 24,
+          bot_connected: true,
+        },
+      ],
+    }, null, 2),
+    audience: "web",
+  },
+  {
+    emoji: MapPin,
+    name: "Get Event Detail",
+    description: "ดึง event ตามละเอียด — venue map (floors + facilities + halls), admin contacts, bot config",
+    method: "GET",
+    path: "/api/events/:id",
+    headers: { "Content-Type": "application/json" },
+    response: JSON.stringify({
+      id: "evt-tech-summit-2026",
+      name: "Tech Summit 2026",
+      start_date: "2026-06-15",
+      end_date: "2026-06-17",
+      description_th: "รวมผู้นำเทคโนโลยีจากทั่วเอเชีย 200+ บริษัท...",
+      venue: {
+        name: "BITEC Bangna",
+        address: "88 Bangna-Trad Road, Bang Na Tai",
+        total_floors: 3,
+        parking_spots: 3500,
+        wifi_ssid: "TechSummit2026",
+        floors: [
+          {
+            level: 2,
+            label: "Second Floor",
+            halls: ["Hall C", "Hall D"],
+            facilities: ["Food Court", "Toilet North", "Toilet South", "Prayer Room", "Nursing Room"],
+            description: "บูธ Fintech, Manufacturing, Healthcare + Food Court 800 ที่นั่ง",
+          },
+        ],
+      },
+      exhibitor_ids: ["ex01", "ex15", "ex22", "..."],
+      admins: [{ id: "adm-ts-01", name: "Khun Apinya", email: "apinya@techsummit2026.com" }],
+      bot: { connected: true, bot_id: "6a013f62fb3079f00791473e", line_oa_name: "Tech Summit 2026 Assistant" },
+    }, null, 2),
+    notes: "ใช้ event id หรือ slug ก็ได้ — เช่น /api/events/tech-summit-2026",
+    audience: "web",
+  },
+  {
+    emoji: Building2,
+    name: "List Booths in Event",
+    description: "ดึงรายการบริษัทที่ออกบูธในงาน — รวม pain_points ที่แต่ละบูธแก้ให้ลูกค้า",
+    method: "GET",
+    path: "/api/events/:id/exhibitors",
+    headers: { "Content-Type": "application/json" },
+    response: JSON.stringify({
+      event_id: "evt-tech-summit-2026",
+      event_name: "Tech Summit 2026",
+      count: 24,
+      items: [
+        {
+          id: "ex01",
+          name: "Botnoi Group",
+          booth_no: "A-12",
+          hall: "Hall A",
+          tagline_th: "ผู้นำ Voice AI และ Chatbot ภาษาไทยอันดับ 1",
+          pain_points: ["Reduce call center cost with Thai voice AI", "Handle 24/7 customer support in Thai language"],
+        },
+      ],
+    }, null, 2),
+    audience: "web",
+  },
+  {
+    emoji: AlertCircle,
+    name: "Exhibitor Pain Points",
+    description: "ดึง pain point ที่บริษัทแก้ให้ลูกค้า + use case summary — บอท agent ใช้สำหรับ reasoning",
+    method: "GET",
+    path: "/api/exhibitors/:id/pain-points",
+    headers: { "Content-Type": "application/json" },
+    response: JSON.stringify({
+      exhibitor_id: "ex01",
+      exhibitor_name: "Botnoi Group",
+      booth_no: "A-12",
+      pain_points: [
+        "Reduce call center cost with Thai voice AI",
+        "Handle 24/7 customer support in Thai language",
+      ],
+      unique_value_props: ["Native Thai NLU with regional accent support", "200+ enterprise customers proven at scale"],
+      use_cases: [
+        {
+          title: "Bank IVR Replacement",
+          industry: "Banking",
+          problem_th: "ลูกค้ารอสายนานเฉลี่ย 8 นาที",
+          outcome_metric: "ลด AHT 35% ใน 4 เดือน",
+        },
+      ],
+    }, null, 2),
+    audience: "bot",
+  },
   {
     emoji: Heart,
     name: "Health Check",

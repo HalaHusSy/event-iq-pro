@@ -104,6 +104,17 @@ export const eventiqClient = {
     return call<{ count: number; items: any[] }>(`/exhibitors${qs}`);
   },
   exhibitorDetail: (id: string) => call<any>(`/exhibitors/${encodeURIComponent(id)}`),
+  exhibitorPainPoints: (id: string) =>
+    call<{ exhibitor_id: string; exhibitor_name: string; pain_points: string[]; use_cases: any[] }>(
+      `/exhibitors/${encodeURIComponent(id)}/pain-points`,
+    ),
+  events: (status?: 'live' | 'upcoming' | 'past') =>
+    call<{ count: number; items: any[] }>(`/events${status ? `?status=${status}` : ''}`),
+  eventDetail: (id: string) => call<any>(`/events/${encodeURIComponent(id)}`),
+  eventExhibitors: (id: string) =>
+    call<{ event_id: string; event_name: string; count: number; items: any[] }>(
+      `/events/${encodeURIComponent(id)}/exhibitors`,
+    ),
   faqList: () => call<{ count: number; items: FaqEntry[] }>('/faq'),
   faqSearch: (question: string, lang: 'th' | 'en' = 'th') =>
     call<FaqSearchResponse>('/faq', {

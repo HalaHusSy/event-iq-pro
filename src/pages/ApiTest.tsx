@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Activity, Search, MessageCircleQuestion, Database, RefreshCw, Send, ExternalLink, Copy, Check, BookOpen } from "lucide-react";
+import { Activity, Search, MessageCircleQuestion, Database, RefreshCw, Send, ExternalLink, Copy, Check, BookOpen, Calendar, MapPin } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,14 +47,16 @@ export default function ApiTest() {
 
         <BaseUrlCard />
 
-        <Tabs defaultValue="match" className="space-y-4">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full">
+        <Tabs defaultValue="events" className="space-y-4">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full">
+            <TabsTrigger value="events"><Calendar className="h-4 w-4 mr-1.5" />Events</TabsTrigger>
             <TabsTrigger value="match"><Search className="h-4 w-4 mr-1.5" />Match</TabsTrigger>
             <TabsTrigger value="faq"><MessageCircleQuestion className="h-4 w-4 mr-1.5" />FAQ</TabsTrigger>
             <TabsTrigger value="data"><Database className="h-4 w-4 mr-1.5" />Browse Data</TabsTrigger>
             <TabsTrigger value="sync"><RefreshCw className="h-4 w-4 mr-1.5" />Sheet Sync</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="events"><EventsBrowser /></TabsContent>
           <TabsContent value="match"><MatchTester /></TabsContent>
           <TabsContent value="faq"><FaqTester /></TabsContent>
           <TabsContent value="data"><DataBrowser /></TabsContent>
@@ -101,6 +103,124 @@ function BaseUrlCard() {
       <p className="text-xs text-muted-foreground mt-2">
         💡 ถ้า base URL เริ่มต้นด้วย <code>/api</code> = serving same-origin. ถ้าใช้ <code>npm run dev</code> ที่ port 8080 ต้องตั้ง <code>VITE_AGENT_URL=https://...vercel.app/api</code> ใน <code>.env.local</code>
       </p>
+    </Card>
+  );
+}
+
+function EventsBrowser() {
+  const [events, setEvents] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any | null>(null);
+  const [roster, setRoster] = useState<any[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [latency, setLatency] = useState(0);
+
+  useEffect(() => {
+    setLoading(true);
+    eventiqClient.events().then((r) => {
+      setEvents(r.data?.items ?? []);
+      setLatency(r.latency_ms);
+      setLoading(false);
+    });
+  }, []);
+
+  const loadDetail = async (id: string) => {
+    setRoster(null);
+    const [d, r] = await Promise.all([eventiqClient.eventDetail(id), eventiqClient.eventExhibitors(id)]);
+    setSelected(d.data);
+    setRoster(r.data?.items ?? []);
+  };
+
+  return (
+    <Card className="p-5 glass space-y-4">
+      <EndpointHeader method="GET" path="/api/events" />
+      <div className="text-xs text-muted-foreground">{loading ? "Loading…" : `${events.length} events · ${latency}ms`}</div>
+
+      <div className="grid sm:grid-cols-2 gap-3">
+        {events.map((e) => (
+          <button key={e.id} onClick={() => loadDetail(e.id)} className={`text-left rounded-lg border p-3 transition-colors ${selected?.id === e.id ? "border-primary bg-primary/5" : "hover:bg-muted/40"}`}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">{e.cover}</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold truncate">{e.name}</div>
+                <div className="text-xs text-muted-foreground">{e.tagline_th}</div>
+                <div className="text-[11px] mt-1 text-muted-foreground flex items-center gap-2 flex-wrap">
+                  <span><Calendar className="h-3 w-3 inline mr-0.5" />{e.start_date} → {e.end_date}</span>
+                  <span><MapPin className="h-3 w-3 inline mr-0.5" />{e.venue_summary?.name}</span>
+                </div>
+                <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                  <Badge variant="outline" className="text-[10px]">{e.status}</Badge>
+                  <Badge variant="secondary" className="text-[10px]">{e.exhibitor_count} booths</Badge>
+                  <Badge variant="outline" className="text-[10px]">{e.expected_visitors.toLocaleString()} ผู้ชม</Badge>
+                </div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {selected && (
+        <div className="border-t pt-4 space-y-3">
+          <EndpointHeader method="GET" path={`/api/events/${selected.id}`} />
+          <div className="rounded-lg border p-4 bg-card/40 space-y-2 text-sm">
+            <div className="flex items-start gap-2">
+              <span className="text-3xl">{selected.cover}</span>
+              <div className="flex-1">
+                <div className="font-semibold">{selected.name}</div>
+                <div className="text-xs text-muted-foreground">{selected.description_th}</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+              <div><span className="text-muted-foreground">Date:</span> {selected.start_date} → {selected.end_date}</div>
+              <div><span className="text-muted-foreground">Open:</span> {selected.open_time} - {selected.close_time}</div>
+              <div><span className="text-muted-foreground">Venue:</span> {selected.venue.name}</div>
+              <div><span className="text-muted-foreground">Address:</span> {selected.venue.address}</div>
+              <div><span className="text-muted-foreground">Floors:</span> {selected.venue.total_floors}</div>
+              <div><span className="text-muted-foreground">Parking:</span> {selected.venue.parking_spots.toLocaleString()} spots</div>
+              <div><span className="text-muted-foreground">Wifi:</span> {selected.venue.wifi_ssid} / {selected.venue.wifi_password}</div>
+              <div><span className="text-muted-foreground">Booths:</span> {selected.exhibitor_ids.length}</div>
+            </div>
+
+            <div className="mt-3">
+              <div className="text-xs font-semibold mb-1.5">Floor map</div>
+              <div className="space-y-1.5">
+                {selected.venue.floors.map((f: any) => (
+                  <div key={f.level} className="rounded border p-2 text-[11px]">
+                    <div className="font-medium">L{f.level} · {f.label} ({f.area_sqm.toLocaleString()} m²)</div>
+                    <div className="text-muted-foreground">{f.description}</div>
+                    <div className="flex gap-1 mt-1 flex-wrap">
+                      {f.halls.map((h: string) => <Badge key={h} variant="secondary" className="text-[10px]">{h}</Badge>)}
+                    </div>
+                    <div className="text-muted-foreground mt-1">🚻 {f.facilities.join(" · ")}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <EndpointHeader method="GET" path={`/api/events/${selected.id}/exhibitors`} />
+          {roster && (
+            <div className="rounded-lg border bg-card/40">
+              <div className="p-2 text-xs text-muted-foreground border-b">{roster.length} booths in this event</div>
+              <ScrollArea className="h-[280px]">
+                <div className="p-2 space-y-1.5">
+                  {roster.map((ex) => (
+                    <div key={ex.id} className="rounded border p-2 text-xs flex items-start gap-2">
+                      <span className="text-xl">{ex.logo_url}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium">{ex.name || "(empty)"} <span className="text-muted-foreground font-normal">· {ex.booth_no} · {ex.hall}</span></div>
+                        <div className="text-muted-foreground line-clamp-1">{ex.tagline_th}</div>
+                        {ex.pain_points?.length > 0 && (
+                          <div className="text-[10px] text-amber-500 mt-1 line-clamp-1">🎯 {ex.pain_points.slice(0, 2).join(" · ")}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
+      )}
     </Card>
   );
 }
