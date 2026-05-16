@@ -21,7 +21,7 @@ import AdminDashboard from "./pages/dashboard/AdminDashboard.tsx";
 import OrganizerDashboard from "./pages/dashboard/OrganizerDashboard.tsx";
 import ExhibitorDashboard from "./pages/dashboard/ExhibitorDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
+import { EventAwareBotnoiWidget } from "./components/botnoi/EventAwareBotnoiWidget";
 
 const queryClient = new QueryClient();
 
@@ -82,7 +82,7 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <BotnoiWidget />
+              <EventAwareBotnoiWidget />
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

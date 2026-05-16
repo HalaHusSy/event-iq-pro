@@ -11,11 +11,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Calendar, MapPin, Users, Bot, MessageSquare, CheckCircle2, XCircle, Pencil, Crown, Building2, Sparkles } from "lucide-react";
+import { Plus, Calendar, MapPin, Users, Bot, Pencil, Crown, Building2, XCircle } from "lucide-react";
 import { PLATFORM_EVENTS, type PlatformEvent } from "@/lib/mock/events";
 import { EXHIBITORS } from "@/lib/mock/exhibitors";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
+import { EventBotConnector } from "@/components/platform/EventBotConnector";
 
 const fmtDate = (iso: string, lang: string) =>
   new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, { day: "numeric", month: "short", year: "numeric" });
@@ -131,7 +132,7 @@ export default function Platform() {
 
           {/* BOT */}
           <TabsContent value="bot" className="mt-6">
-            <BotManager event={selected} update={updateSelected} />
+            <EventBotConnector eventSlug={selected.slug} />
           </TabsContent>
         </Tabs>
       </div>
@@ -327,102 +328,3 @@ function ExhibitorsManager({ event }: { event: PlatformEvent }) {
   );
 }
 
-function BotManager({ event, update }: { event: PlatformEvent; update: (p: Partial<PlatformEvent>) => void }) {
-  const { t } = useI18n();
-  const [botId, setBotId] = useState(event.bot.botId || "");
-  const [lineOaId, setLineOaId] = useState(event.bot.lineOaId || "");
-  const [lineOaName, setLineOaName] = useState(event.bot.lineOaName || "");
-
-  const connectBot = () => {
-    if (!botId) return toast.error("Bot ID required");
-    update({ bot: { ...event.bot, connected: true, botId } });
-    toast.success("Bot connected to event");
-  };
-  const linkLine = () => {
-    if (!lineOaId) return toast.error("LINE OA ID required");
-    update({ bot: { ...event.bot, lineOaId, lineOaName } });
-    toast.success(`LINE OA ${lineOaId} linked`);
-  };
-  const disconnect = () => {
-    update({ bot: { connected: false } });
-    setBotId(""); setLineOaId(""); setLineOaName("");
-    toast.success("Bot disconnected");
-  };
-
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Bot connection */}
-      <Card className="glass p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-primary text-primary-foreground"><Bot className="h-6 w-6" /></div>
-          <div>
-            <h3 className="font-semibold">Botnoi AI Bot</h3>
-            <p className="text-xs text-muted-foreground">เชื่อมต่อ Botnoi bot เข้ากับ event นี้</p>
-          </div>
-          <Badge className={`ml-auto ${event.bot.connected ? "bg-emerald-500" : "bg-muted"}`}>
-            {event.bot.connected ? t("platform.connected") : t("platform.notConnected")}
-          </Badge>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Botnoi Bot ID</Label>
-          <Input value={botId} onChange={(e) => setBotId(e.target.value)} placeholder="6a013f62fb3079f00791473e" className="font-mono text-sm" />
-          <p className="text-xs text-muted-foreground">หาได้จาก <a className="text-primary underline" href="https://console.botnoi.ai" target="_blank" rel="noreferrer">console.botnoi.ai</a></p>
-        </div>
-        <Button onClick={connectBot} className="w-full bg-gradient-primary"><Sparkles className="h-4 w-4 mr-1.5" />{t("platform.connectBot")}</Button>
-      </Card>
-
-      {/* LINE OA */}
-      <Card className="glass p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-emerald-500 text-white"><MessageSquare className="h-6 w-6" /></div>
-          <div>
-            <h3 className="font-semibold">LINE Official Account</h3>
-            <p className="text-xs text-muted-foreground">Link bot เข้ากับ LINE OA ของงาน</p>
-          </div>
-          <Badge className={`ml-auto ${event.bot.lineOaId ? "bg-emerald-500" : "bg-muted"}`}>
-            {event.bot.lineOaId ? "Linked" : "Not linked"}
-          </Badge>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">LINE OA ID</Label>
-          <Input value={lineOaId} onChange={(e) => setLineOaId(e.target.value)} placeholder="@youroa" className="font-mono text-sm" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Display name</Label>
-          <Input value={lineOaName} onChange={(e) => setLineOaName(e.target.value)} placeholder="EventIQ Assistant" />
-        </div>
-        <Button onClick={linkLine} disabled={!event.bot.connected} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white">
-          <MessageSquare className="h-4 w-4 mr-1.5" />{t("platform.linkLine")}
-        </Button>
-        {!event.bot.connected && <p className="text-xs text-amber-600">⚠️ ต้องเชื่อมต่อ Bot ก่อนถึงจะ link LINE OA ได้</p>}
-      </Card>
-
-      {/* Status summary */}
-      <Card className="glass p-5 md:col-span-2">
-        <h3 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" />Integration status</h3>
-        <div className="grid sm:grid-cols-3 gap-4 text-sm">
-          <Status label="Bot connected" ok={event.bot.connected} value={event.bot.botId} />
-          <Status label="LINE OA" ok={!!event.bot.lineOaId} value={event.bot.lineOaId} />
-          <Status label="Webhook ready" ok={event.bot.connected && !!event.bot.lineOaId} value={event.bot.connected && event.bot.lineOaId ? "Active" : "Pending"} />
-        </div>
-        {event.bot.connected && (
-          <div className="mt-4 pt-4 border-t flex justify-end">
-            <Button variant="outline" size="sm" onClick={disconnect}>Disconnect all</Button>
-          </div>
-        )}
-      </Card>
-    </div>
-  );
-}
-
-function Status({ label, ok, value }: { label: string; ok: boolean; value?: string }) {
-  return (
-    <div className="p-3 rounded-lg border bg-card">
-      <div className="flex items-center gap-2 mb-1">
-        {ok ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}
-        <span className="text-xs text-muted-foreground">{label}</span>
-      </div>
-      <div className="font-mono text-xs truncate">{value || "—"}</div>
-    </div>
-  );
-}

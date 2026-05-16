@@ -78,6 +78,9 @@ export type Database = {
           end_date: string | null;
           status: string;
           banner_url: string | null;
+          botnoi_bot_id: string | null;
+          line_oa_id: string | null;
+          line_oa_name: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -91,6 +94,9 @@ export type Database = {
           end_date?: string | null;
           status?: string;
           banner_url?: string | null;
+          botnoi_bot_id?: string | null;
+          line_oa_id?: string | null;
+          line_oa_name?: string | null;
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;

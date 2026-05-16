@@ -30,6 +30,28 @@ export async function listEvents(organizerId?: string) {
   return data;
 }
 
+export async function getEventBySlug(slug: string) {
+  // No slug column in events yet — derive slug from name (lowercase + spaces → '-')
+  // and match on a server-rendered expression. Simpler: pull all and match client-side.
+  const { data, error } = await supabase.from("events").select("*");
+  if (error) throw error;
+  return (
+    data.find(
+      (e) => e.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") === slug
+    ) ?? null
+  );
+}
+
+export async function getEventByBotId(botId: string) {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("botnoi_bot_id", botId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export async function listExhibitors(eventId?: string) {
   let q = supabase
     .from("exhibitors")
