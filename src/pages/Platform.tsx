@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,11 +17,38 @@ import { EXHIBITORS } from "@/lib/mock/exhibitors";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
+const fmtDate = (iso: string, lang: string) =>
+  new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, { day: "numeric", month: "short", year: "numeric" });
+
 export default function Platform() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const [params, setParams] = useSearchParams();
   const [events, setEvents] = useState<PlatformEvent[]>(PLATFORM_EVENTS);
-  const [selectedEventId, setSelectedEventId] = useState(events[0].id);
+
+  const eventSlug = params.get("event");
+  const initialId = (eventSlug && events.find((e) => e.slug === eventSlug)?.id) || events[0].id;
+  const [selectedEventId, setSelectedEventId] = useState(initialId);
+
+  // Keep URL ?event=<slug> in sync when the user switches via the dropdown
+  useEffect(() => {
+    const current = events.find((e) => e.id === selectedEventId);
+    if (current && params.get("event") !== current.slug) {
+      const next = new URLSearchParams(params);
+      next.set("event", current.slug);
+      setParams(next, { replace: true });
+    }
+  }, [selectedEventId, events, params, setParams]);
+
+  // React to URL changes (e.g. navigating back from Events with a different slug)
+  useEffect(() => {
+    if (!eventSlug) return;
+    const match = events.find((e) => e.slug === eventSlug);
+    if (match && match.id !== selectedEventId) setSelectedEventId(match.id);
+  }, [eventSlug, events, selectedEventId]);
+
   const selected = events.find((e) => e.id === selectedEventId)!;
+  const statusColor =
+    selected.status === "live" ? "bg-emerald-500" : selected.status === "upcoming" ? "bg-amber-500" : "bg-muted-foreground";
 
   const updateSelected = (patch: Partial<PlatformEvent>) =>
     setEvents((prev) => prev.map((e) => (e.id === selectedEventId ? { ...e, ...patch } : e)));
@@ -28,25 +56,45 @@ export default function Platform() {
   return (
     <AppShell>
       <div className="container py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Crown className="h-5 w-5 text-amber-500" />
-              <Badge variant="outline" className="font-mono text-xs">ROOT ACCOUNT</Badge>
+        {/* Active event banner */}
+        <Card className="glass overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center gap-5 p-5">
+            <div className="shrink-0 grid h-20 w-20 place-items-center rounded-2xl bg-gradient-primary text-5xl shadow-glow">
+              {selected.cover}
             </div>
-            <h1 className="text-3xl font-bold gradient-text">{t("platform.title")}</h1>
-            <p className="text-muted-foreground mt-1">{t("platform.sub")}</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <Badge className={`${statusColor} text-white border-0 gap-1.5`}>
+                  {selected.status === "live" && <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
+                  {selected.status.toUpperCase()}
+                </Badge>
+                <Badge variant="outline" className="font-mono text-[10px]">EVENT</Badge>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold gradient-text leading-tight">{selected.name}</h1>
+              {selected.description && (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{selected.description}</p>
+              )}
+              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
+                <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{selected.venue}</span>
+                <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{fmtDate(selected.startDate, lang)} – {fmtDate(selected.endDate, lang)}</span>
+                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{selected.exhibitorCount} exhibitors</span>
+                <span className="flex items-center gap-1.5"><Bot className="h-3.5 w-3.5" />Bot {selected.bot.connected ? "connected" : "off"}</span>
+              </div>
+            </div>
+            <div className="md:text-right text-sm shrink-0">
+              <div className="flex items-center gap-2 md:justify-end mb-1">
+                <Crown className="h-4 w-4 text-amber-500" />
+                <Badge variant="outline" className="font-mono text-xs">ROOT ACCOUNT</Badge>
+              </div>
+              <div className="text-muted-foreground text-xs">Logged in as</div>
+              <div className="font-semibold text-sm">root@eventiq.app</div>
+            </div>
           </div>
-          <div className="text-right text-sm">
-            <div className="text-muted-foreground">Logged in as</div>
-            <div className="font-semibold">root@eventiq.app</div>
-          </div>
-        </div>
+        </Card>
 
-        {/* Event selector */}
+        {/* Event switcher */}
         <Card className="p-4 glass flex items-center gap-3 flex-wrap">
-          <Label className="text-xs text-muted-foreground">Active event:</Label>
+          <Label className="text-xs text-muted-foreground">Switch event:</Label>
           <Select value={selectedEventId} onValueChange={setSelectedEventId}>
             <SelectTrigger className="w-[280px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -55,9 +103,7 @@ export default function Platform() {
               ))}
             </SelectContent>
           </Select>
-          <Badge variant="outline" className="ml-auto">
-            {selected.exhibitorCount} exhibitors · {selected.admins.length} admins · Bot {selected.bot.connected ? "✓" : "✗"}
-          </Badge>
+          <p className="text-xs text-muted-foreground md:ml-auto">{t("platform.sub")}</p>
         </Card>
 
         <Tabs defaultValue="events">

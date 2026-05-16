@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Target, MessageSquare, Mic, NotebookPen, ArrowRight, Sparkles, Zap, MapPin } from "lucide-react";
+import { Target, MessageSquare, ArrowRight, Sparkles, Zap, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +9,6 @@ import { useI18n } from "@/lib/i18n";
 const features = [
   { icon: Target, key: "f1", to: "/visitor?tab=find", color: "from-indigo-500 to-violet-500" },
   { icon: MessageSquare, key: "f2", to: "/visitor?tab=ask", color: "from-blue-500 to-cyan-500" },
-  { icon: Mic, key: "f3", to: "/visitor?tab=memory", color: "from-rose-500 to-amber-500" },
-  { icon: NotebookPen, key: "f4", to: "/visitor?tab=sessions", color: "from-emerald-500 to-teal-500" },
 ];
 
 const Index = () => {
@@ -46,7 +44,7 @@ const Index = () => {
 
       {/* Features */}
       <section className="container py-20">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
           {features.map((f) => (
             <Link to={f.to} key={f.key} className="group">
               <Card className="p-6 h-full glass hover:shadow-elegant transition-all hover:-translate-y-1 duration-300">
@@ -86,12 +84,11 @@ const Index = () => {
 
       {/* Stats */}
       <section className="container py-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
           {[
             { v: "15s", l: "Avg. match time" },
             { v: "92%", l: "Match precision" },
             { v: "20+", l: "Exhibitors" },
-            { v: "8", l: "Live sessions" },
           ].map(s => (
             <div key={s.l} className="text-center p-6 rounded-2xl glass">
               <div className="font-mono text-3xl md:text-4xl font-bold gradient-text">{s.v}</div>

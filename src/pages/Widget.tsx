@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MessageCircle, X, Sparkles, Send, Target, HelpCircle, BookOpen, CalendarDays, Mic, Minimize2, Code2, Copy, Check } from "lucide-react";
-import { exhibitors, faqs, memories, sessions, sampleMatches } from "@/lib/mock";
+import { MessageCircle, X, Sparkles, Send, Target, HelpCircle, Mic, Minimize2, Code2, Copy, Check } from "lucide-react";
+import { faqs, sampleMatches } from "@/lib/mock";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +67,7 @@ function DemoHost() {
       <Badge variant="outline" className="mb-3 gap-1.5"><Sparkles className="h-3 w-3 text-accent" />EventIQ Widget · v1.0</Badge>
       <h1 className="text-4xl font-bold mb-3">Embeddable Chat Widget</h1>
       <p className="text-muted-foreground mb-8 max-w-2xl">
-        Drop a single line of script onto any exhibitor microsite, partner landing page, or event portal. Your visitors get instant access to booth matching, FAQ, memory articles, and the schedule — powered by Botnoi AI.
+        Drop a single line of script onto any exhibitor microsite, partner landing page, or event portal. Your visitors get instant access to booth matching and event FAQ — powered by Botnoi AI.
       </p>
 
       <Card className="glass p-0 overflow-hidden mb-8">
@@ -95,7 +95,7 @@ function DemoHost() {
         {[
           { t: "1-line install", d: "Async, non-blocking. Zero impact on page load." },
           { t: "Brand-aware", d: "Customize colors, position, and locale via data-* attributes." },
-          { t: "Full feature parity", d: "Booth match, FAQ, memory, and sessions — same as the visitor portal." },
+          { t: "Full feature parity", d: "Booth match and event FAQ — same as the visitor portal." },
         ].map(f => (
           <Card key={f.t} className="p-4 glass">
             <div className="font-semibold text-sm mb-1">{f.t}</div>
@@ -153,12 +153,10 @@ function FloatingWidget({ eventId, themeStyle, position, initialOpen }:
 
             {/* Quick action tabs */}
             <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col min-h-0">
-              <TabsList className="grid grid-cols-4 m-2 h-auto p-1 shrink-0">
+              <TabsList className="grid grid-cols-2 m-2 h-auto p-1 shrink-0">
                 {[
                   { v: "match", icon: Target, label: "Match" },
                   { v: "faq", icon: HelpCircle, label: "FAQ" },
-                  { v: "memory", icon: BookOpen, label: "Memory" },
-                  { v: "sessions", icon: CalendarDays, label: "Sessions" },
                 ].map(t => (
                   <TabsTrigger key={t.v} value={t.v} className="flex-col h-auto py-1.5 gap-0.5 text-[10px] data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
                     <t.icon className="h-3.5 w-3.5" />
@@ -169,8 +167,6 @@ function FloatingWidget({ eventId, themeStyle, position, initialOpen }:
 
               <TabsContent value="match" className="flex-1 m-0 min-h-0"><MatchPanel /></TabsContent>
               <TabsContent value="faq" className="flex-1 m-0 min-h-0"><FAQPanel /></TabsContent>
-              <TabsContent value="memory" className="flex-1 m-0 min-h-0"><MemoryPanel /></TabsContent>
-              <TabsContent value="sessions" className="flex-1 m-0 min-h-0"><SessionsPanel /></TabsContent>
             </Tabs>
 
             <div className="px-3 py-2 border-t bg-secondary/40 text-[10px] text-muted-foreground flex items-center justify-between font-mono">
@@ -267,11 +263,11 @@ function MatchPanel() {
 
 function FAQPanel() {
   const [q, setQ] = useState("");
-  const [msgs, setMsgs] = useState<Msg[]>([{ role: "bot", text: "Ask me anything about the event — venue, schedule, food, wifi…", ts: Date.now() }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ role: "bot", text: "Ask me anything about the event — venue, schedule, wifi…", ts: Date.now() }]);
   const send = () => {
     if (!q.trim()) return;
     const found = faqs.find(f => f.q.en.toLowerCase().includes(q.toLowerCase().split(" ")[0]) || q.toLowerCase().includes(f.q.en.toLowerCase().split(" ")[0]));
-    setMsgs(m => [...m, { role: "user", text: q, ts: Date.now() }, { role: "bot", text: found?.a.en ?? "I couldn't find an exact answer. Try asking about sessions, venue, or food.", ts: Date.now() + 1 }]);
+    setMsgs(m => [...m, { role: "user", text: q, ts: Date.now() }, { role: "bot", text: found?.a.en ?? "I couldn't find an exact answer. Try asking about the venue, schedule, or food.", ts: Date.now() + 1 }]);
     setQ("");
   };
   return (
@@ -287,38 +283,3 @@ function FAQPanel() {
   );
 }
 
-function MemoryPanel() {
-  const pub = memories.filter(m => m.status === "public");
-  return (
-    <ChatShell>
-      <Bubble role="bot">📖 Recent public memory articles from this event:</Bubble>
-      {pub.map(m => (
-        <div key={m.id} className="bg-card border rounded-xl p-2.5 hover:border-primary/40 transition-colors cursor-pointer">
-          <div className="text-xs font-semibold mb-0.5">{m.title}</div>
-          <div className="text-[10px] text-muted-foreground font-mono mb-1">{m.booth} · {m.date}</div>
-          <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">{m.excerpt}</p>
-        </div>
-      ))}
-    </ChatShell>
-  );
-}
-
-function SessionsPanel() {
-  return (
-    <ChatShell>
-      <Bubble role="bot">🗓️ Today's sessions — tap to add to your calendar.</Bubble>
-      {sessions.slice(0, 6).map(s => (
-        <div key={s.id} className="bg-card border rounded-xl p-2.5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="text-xs font-semibold leading-tight">{s.title}</div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">{s.speaker} · {s.room}</div>
-            </div>
-            <Badge variant="outline" className="text-[10px] h-5 font-mono shrink-0">{s.time.split(" ")[0]}</Badge>
-          </div>
-          <div className="flex gap-1 mt-1.5">{s.langs.map(l => <Badge key={l} variant="secondary" className="text-[9px] h-4 px-1.5">{l}</Badge>)}</div>
-        </div>
-      ))}
-    </ChatShell>
-  );
-}

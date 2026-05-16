@@ -39,7 +39,7 @@ function EventCard({ e }: { e: PlatformEvent }) {
           <span className="flex items-center gap-1"><Mic className="h-3.5 w-3.5 text-accent" />{e.sessionCount} {t("events.sessions")}</span>
         </div>
         <Button asChild className="w-full bg-gradient-primary group-hover:shadow-glow transition-shadow">
-          <Link to={`/visitor?event=${e.slug}`}>{t("events.enter")} <ArrowRight className="ml-1 h-4 w-4" /></Link>
+          <Link to={`/platform?event=${e.slug}`}>{t("events.enter")} <ArrowRight className="ml-1 h-4 w-4" /></Link>
         </Button>
       </div>
     </Card>
