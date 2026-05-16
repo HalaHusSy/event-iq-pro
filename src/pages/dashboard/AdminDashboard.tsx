@@ -48,6 +48,7 @@ import {
   listOrganizers,
   listProfiles,
 } from "@/lib/data/queries";
+import { EditBoothDialog } from "@/components/booth/EditBoothDialog";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: ShieldCheck },
@@ -333,6 +334,7 @@ function AllExhibitors() {
             <TableHead>Event</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead>Linked User</TableHead>
+            <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -347,12 +349,15 @@ function AllExhibitors() {
                 <TableCell>
                   {x.user_id ? <Badge variant="outline">linked</Badge> : <Badge variant="secondary">unlinked</Badge>}
                 </TableCell>
+                <TableCell className="text-right">
+                  <EditBoothDialog booth={x} />
+                </TableCell>
               </TableRow>
             );
           })}
           {exhibitors.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
                 ยังไม่มี exhibitor
               </TableCell>
             </TableRow>

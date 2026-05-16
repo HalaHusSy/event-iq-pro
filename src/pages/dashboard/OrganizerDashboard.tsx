@@ -43,6 +43,7 @@ import {
   listProfiles,
   updateEvent,
 } from "@/lib/data/queries";
+import { EditBoothDialog } from "@/components/booth/EditBoothDialog";
 
 const NAV = [
   { id: "overview", label: "My Events", icon: CalendarIcon },
@@ -415,12 +416,15 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
                   {x.user_id ? <Badge variant="outline">linked</Badge> : <Badge variant="secondary">no user</Badge>}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    size="sm" variant="ghost"
-                    onClick={() => { if (confirm("ลบ exhibitor นี้?")) del.mutate(x.id); }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <EditBoothDialog booth={x} />
+                    <Button
+                      size="sm" variant="ghost"
+                      onClick={() => { if (confirm("ลบ exhibitor นี้?")) del.mutate(x.id); }}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             );

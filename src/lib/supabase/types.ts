@@ -14,6 +14,15 @@ export type AppRole =
   | "visitor"
   | "speaker";
 
+export type Solution = { name: string; description: string };
+export type UseCaseItem = { title: string; industry: string; description: string };
+export type SuccessStory = {
+  client: string;
+  industry: string;
+  outcome: string;
+  description: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -102,6 +111,11 @@ export type Database = {
           website: string | null;
           social_links: Json;
           tags: string[] | null;
+          solutions: Solution[];
+          use_cases: UseCaseItem[];
+          success_stories: SuccessStory[];
+          clients: string[];
+          competitive_edge: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -120,6 +134,11 @@ export type Database = {
           website?: string | null;
           social_links?: Json;
           tags?: string[] | null;
+          solutions?: Solution[];
+          use_cases?: UseCaseItem[];
+          success_stories?: SuccessStory[];
+          clients?: string[];
+          competitive_edge?: string | null;
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["exhibitors"]["Insert"]>;
