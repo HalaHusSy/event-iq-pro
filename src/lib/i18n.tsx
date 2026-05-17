@@ -47,10 +47,6 @@ export const dict: Dict = {
   "f1.desc": tr("เล่า pain ของคุณ AI หาบูธที่ตรงที่สุดให้ทันที", "Describe your pain, get the perfect booth match instantly."),
   "f2.title": tr("ถามอะไรก็ได้เกี่ยวกับงาน", "Event FAQ"),
   "f2.desc": tr("ตารางเซสชั่น แผนที่ ร้านอาหาร ตอบครบจบในแชท", "Schedules, maps, food courts — answered in chat."),
-  "f3.title": tr("บันทึกความทรงจำงาน", "Event Memory"),
-  "f3.desc": tr("อัดเสียงคุยกับบูธ AI สรุปเป็นบทความให้คุณ", "Record booth conversations. AI summarizes into articles."),
-  "f4.title": tr("สรุป Q&A เซสชั่น", "Q&A Summary"),
-  "f4.desc": tr("อ่านสรุปทุกเซสชั่นที่คุณพลาด พร้อม Q&A ที่น่าสนใจ", "Read summaries of any session you missed."),
 
   "how.title": tr("ใช้งานอย่างไร", "How it works", { zh: "如何使用", fr: "Comment ça marche", vi: "Cách hoạt động", ja: "使い方" }),
   "how.1": tr("เล่า pain หรือความสนใจของคุณ", "Describe your pain or interest"),
@@ -62,8 +58,9 @@ export const dict: Dict = {
   // visitor tabs
   "tab.find": tr("หาบูธ", "Find Booth"),
   "tab.ask": tr("ถามเรื่องงาน", "Ask Event"),
-  "tab.memory": tr("บันทึกความทรงจำ", "Event Memory"),
-  "tab.sessions": tr("สรุปเซสชั่น", "Sessions"),
+
+  // visitor event banner
+  "visitor.currentEvent": tr("กำลังอยู่ในงาน", "Current event", { zh: "当前活动", fr: "Événement actuel", vi: "Sự kiện hiện tại", ja: "現在のイベント" }),
 
   // events page
   "events.title": tr("งานทั้งหมดในระบบ", "All Events", { zh: "所有活动", fr: "Tous les événements", vi: "Tất cả sự kiện", ja: "すべてのイベント" }),
