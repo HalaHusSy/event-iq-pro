@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
@@ -7,14 +7,51 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Loader2, Save, Sparkles } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Bell,
+  Building2,
+  Calendar as CalendarIcon,
+  Loader2,
+  MapPin,
+  Plus,
+  Save,
+  Sparkles,
+  Users as UsersIcon,
+} from "lucide-react";
 import { toast } from "sonner";
-import { getMyExhibitor, updateExhibitor } from "@/lib/data/queries";
+import { supabase } from "@/lib/supabase/client";
+import {
+  createLead,
+  getMyExhibitor,
+  listAnnouncements,
+  listLeads,
+  updateExhibitor,
+} from "@/lib/data/queries";
+import type { EventRow } from "@/lib/supabase/types";
 
 const NAV = [
   { id: "booth", label: "My Booth", icon: Building2 },
   { id: "preview", label: "Preview", icon: Sparkles },
+  { id: "event", label: "Event Info", icon: CalendarIcon },
+  { id: "leads", label: "Leads", icon: UsersIcon },
 ];
+
+function fmtDate(iso?: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+}
+function fmtDateTime(iso?: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-US", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
 
 export default function ExhibitorDashboard() {
   const [view, setView] = useState("booth");
@@ -95,6 +132,10 @@ export default function ExhibitorDashboard() {
             กรุณาให้ organizer สร้าง booth และ link มาที่ account นี้ก่อน
           </p>
         </Card>
+      ) : view === "event" ? (
+        <EventInfo eventId={booth.event_id} />
+      ) : view === "leads" ? (
+        <Leads exhibitorId={booth.id} />
       ) : view === "booth" ? (
         <Card className="p-5 glass max-w-2xl">
           <div className="flex items-center justify-between mb-4">
@@ -253,6 +294,231 @@ function BoothPreview({
             </a>
           </div>
         )}
+      </div>
+    </Card>
+  );
+}
+
+/* ---------------- Event Info (UC-E02: floor plan + announcements) ---------------- */
+function EventInfo({ eventId }: { eventId: string }) {
+  const { data: event, isLoading } = useQuery({
+    queryKey: ["event", eventId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as EventRow | null;
+    },
+  });
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["announcements", eventId],
+    queryFn: () => listAnnouncements(eventId),
+  });
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+  if (!event) return <Card className="p-6 glass">ไม่พบ event</Card>;
+
+  return (
+    <div className="space-y-4 max-w-3xl">
+      <Card className="p-5 glass">
+        <h2 className="font-semibold mb-3">{event.name}</h2>
+        <div className="grid sm:grid-cols-3 gap-3 text-sm">
+          <div className="flex items-start gap-2">
+            <CalendarIcon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+            <div>
+              <div className="text-xs text-muted-foreground">Schedule</div>
+              <div className="font-medium">{fmtDate(event.start_date)} → {fmtDate(event.end_date)}</div>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+            <div>
+              <div className="text-xs text-muted-foreground">Location</div>
+              <div className="font-medium">{event.location ?? "—"}</div>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Sparkles className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+            <div>
+              <div className="text-xs text-muted-foreground">Status</div>
+              <Badge variant="outline" className="capitalize">{event.status}</Badge>
+            </div>
+          </div>
+        </div>
+        {event.description && (
+          <p className="text-sm text-muted-foreground mt-3 pt-3 border-t">{event.description}</p>
+        )}
+      </Card>
+
+      <Card className="p-5 glass">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> Floor Plan</h3>
+          {!event.floor_plan_url && <Badge variant="outline">ยังไม่อัปโหลด</Badge>}
+        </div>
+        {event.floor_plan_url ? (
+          <a href={event.floor_plan_url} target="_blank" rel="noreferrer">
+            <img
+              src={event.floor_plan_url}
+              alt="floor plan"
+              className="w-full rounded-lg border max-h-[480px] object-contain bg-muted/30"
+            />
+          </a>
+        ) : (
+          <div className="p-8 text-center text-sm text-muted-foreground bg-muted/20 rounded-lg">
+            Organizer ยังไม่ได้อัปโหลด floor plan
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-5 glass">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold flex items-center gap-2"><Bell className="h-4 w-4" /> Announcements</h3>
+          <Badge variant="outline">{announcements.length} ข้อความ</Badge>
+        </div>
+        <div className="space-y-2">
+          {announcements.length === 0 && (
+            <div className="p-6 text-center text-sm text-muted-foreground bg-muted/20 rounded-lg">
+              ยังไม่มี announcement จาก organizer
+            </div>
+          )}
+          {announcements.map((a) => (
+            <div key={a.id} className="p-3 rounded-lg border bg-card/50">
+              <div className="flex items-start justify-between gap-2">
+                <div className="font-medium">{a.title}</div>
+                <div className="text-xs text-muted-foreground font-mono shrink-0">
+                  {fmtDateTime(a.created_at)}
+                </div>
+              </div>
+              {a.body && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{a.body}</p>}
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ---------------- Leads (UC-E02: attendee leads) ---------------- */
+function Leads({ exhibitorId }: { exhibitorId: string }) {
+  const qc = useQueryClient();
+  const { data: leads = [], isLoading } = useQuery({
+    queryKey: ["leads", exhibitorId],
+    queryFn: () => listLeads(exhibitorId),
+  });
+
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+
+  const add = useMutation({
+    mutationFn: () =>
+      createLead({
+        exhibitorId,
+        visitorName: name || undefined,
+        visitorEmail: email || undefined,
+        visitorPhone: phone || undefined,
+        note: note || undefined,
+        source: "manual",
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads", exhibitorId] });
+      toast.success("เพิ่ม lead แล้ว");
+      setOpen(false);
+      setName(""); setEmail(""); setPhone(""); setNote("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const summary = useMemo(() => ({
+    total: leads.length,
+    withEmail: leads.filter((l) => l.visitor_email).length,
+    withPhone: leads.filter((l) => l.visitor_phone).length,
+  }), [leads]);
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+
+  return (
+    <Card className="glass max-w-3xl">
+      <div className="p-5 border-b flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold">Attendee Leads</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {summary.total} leads · {summary.withEmail} email · {summary.withPhone} phone
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="bg-gradient-primary">
+              <Plus className="h-4 w-4 mr-1" /> Add lead
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>เพิ่ม Lead ใหม่</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label>ชื่อ</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Email</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label>Note</Label>
+                <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="สนใจ product..., ติดตาม follow-up..." />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
+              <Button
+                className="bg-gradient-primary"
+                onClick={() => add.mutate()}
+                disabled={(!name && !email && !phone) || add.isPending}
+              >
+                {add.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                บันทึก
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <div className="divide-y">
+        {leads.length === 0 && (
+          <div className="p-12 text-center text-sm text-muted-foreground">
+            <UsersIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
+            ยังไม่มี lead — กด Add lead เพื่อบันทึก
+          </div>
+        )}
+        {leads.map((l) => (
+          <div key={l.id} className="p-4 hover:bg-muted/30 transition-colors">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-medium">{l.visitor_name || "—"}</div>
+                <div className="text-xs text-muted-foreground mt-0.5 space-x-2">
+                  {l.visitor_email && <span>✉ {l.visitor_email}</span>}
+                  {l.visitor_phone && <span>☎ {l.visitor_phone}</span>}
+                </div>
+                {l.note && <p className="text-sm mt-1.5 text-muted-foreground">{l.note}</p>}
+              </div>
+              <div className="text-xs text-muted-foreground font-mono shrink-0">
+                {fmtDateTime(l.created_at)}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </Card>
   );
