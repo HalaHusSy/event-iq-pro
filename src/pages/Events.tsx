@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowRight, Calendar, MapPin, Users, Mic, Search, Sparkles } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PLATFORM_EVENTS, type PlatformEvent } from "@/lib/mock/events";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 
 const fmt = (iso: string, lang: string) =>
   new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, {
@@ -95,7 +96,16 @@ function EventCard({ e }: { e: PlatformEvent }) {
 
 export default function Events() {
   const { t, lang } = useI18n();
+  const location = useLocation();
   const [search, setSearch] = useState("");
+
+  // Toast เมื่อโดน redirect มาจาก /visitor โดยไม่ได้เลือก event
+  useEffect(() => {
+    if ((location.state as { requireEvent?: boolean } | null)?.requireEvent) {
+      toast.info("กรุณาเลือก event ก่อนใช้งาน Visitor portal", { duration: 4000 });
+      window.history.replaceState({}, "");
+    }
+  }, [location.state]);
 
   const filterBy = (s: PlatformEvent["status"] | "all") => {
     const list = s === "all" ? PLATFORM_EVENTS : PLATFORM_EVENTS.filter((e) => e.status === s);

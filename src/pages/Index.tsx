@@ -20,14 +20,14 @@ const features = [
   {
     icon: Target,
     key: "f1",
-    to: "/visitor?tab=find",
+    to: "/events",
     color: "from-indigo-500 to-violet-500",
     accent: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300",
   },
   {
     icon: MessageSquare,
     key: "f2",
-    to: "/visitor?tab=ask",
+    to: "/events",
     color: "from-blue-500 to-cyan-500",
     accent: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
   },
@@ -59,7 +59,7 @@ const Index = () => {
                 size="lg"
                 className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-shadow"
               >
-                <Link to="/visitor">
+                <Link to="/events">
                   {t("hero.cta.visitor")} <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>

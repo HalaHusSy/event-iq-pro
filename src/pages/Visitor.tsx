@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { Target, MessageSquare, Send, Sparkles, Mic2, Bookmark, MapPin, ChevronDown, Brain, X, GitCompare, Filter, Calendar } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,12 @@ export default function VisitorPortal() {
   const active = params.get("tab") || "find";
   const eventSlug = params.get("event");
   const { t } = useI18n();
+
+  // STRICT: ต้องเลือก event ก่อนใช้งาน Visitor portal
+  const eventExists = eventSlug && PLATFORM_EVENTS.some((e) => e.slug === eventSlug);
+  if (!eventExists) {
+    return <Navigate to="/events" state={{ requireEvent: true }} replace />;
+  }
 
   const setTab = (id: string) => {
     const next: Record<string, string> = { tab: id };
