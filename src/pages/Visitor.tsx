@@ -70,19 +70,22 @@ export default function VisitorPortal() {
     <AppShell>
       <div className="container py-8">
         {eventSlug && <EventBanner slug={eventSlug} />}
-        <div className="grid lg:grid-cols-[240px_1fr] gap-6">
+        <div className="grid lg:grid-cols-[220px_1fr] gap-6">
           <aside className="lg:sticky lg:top-20 lg:self-start">
-            <Card className="p-2 glass">
+            <Card className="p-2">
+              <div className="px-2 py-2 text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                Visitor Tools
+              </div>
               <nav className="flex lg:flex-col gap-1 overflow-x-auto">
                 {tabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setTab(tab.id)}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium whitespace-nowrap transition-all ${
+                    className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium whitespace-nowrap transition-all text-left ${
                       active === tab.id ? "bg-gradient-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   >
-                    <tab.icon className="h-4 w-4" />
+                    <tab.icon className={`h-4 w-4 ${active === tab.id ? "" : "opacity-70 group-hover:opacity-100"}`} />
                     {t(tab.key)}
                   </button>
                 ))}
