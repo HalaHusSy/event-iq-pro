@@ -40,11 +40,27 @@ const App = () => (
                 <Route path="/visitor" element={<Visitor />} />
                 <Route path="/exhibitor" element={<Exhibitor />} />
                 <Route path="/speaker" element={<Speaker />} />
-                <Route path="/admin" element={<Admin />} />
                 <Route path="/widget" element={<Widget />} />
                 <Route path="/events" element={<Events />} />
-                <Route path="/platform" element={<Platform />} />
                 <Route path="/login" element={<Login />} />
+
+                {/* Demo dashboards behind auth (mock data, real RBAC dashboards at /root and /dashboard/*) */}
+                <Route
+                  path="/admin"
+                  element={
+                    <RoleGate allow={["root", "admin"]}>
+                      <Admin />
+                    </RoleGate>
+                  }
+                />
+                <Route
+                  path="/platform"
+                  element={
+                    <RoleGate allow={["root"]}>
+                      <Platform />
+                    </RoleGate>
+                  }
+                />
 
                 {/* RBAC dashboards */}
                 <Route

@@ -39,11 +39,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Building2,
   Calendar as CalendarIcon,
+  KeyRound,
   Layers,
   Loader2,
+  Mail,
   MoreHorizontal,
   Plus,
   RefreshCw,
@@ -54,13 +57,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  createExhibitor,
   createOrganizer,
   deleteEvent,
   getPlatformStats,
+  inviteUserByEmail,
   listEvents,
   listExhibitors,
   listOrganizers,
   listProfiles,
+  sendPasswordReset,
 } from "@/lib/data/queries";
 
 const NAV = [
@@ -280,6 +286,7 @@ function Organizers() {
               className="pl-8 h-9"
             />
           </div>
+          <InviteUserButton />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-gradient-primary shrink-0">
@@ -359,44 +366,17 @@ function Organizers() {
             <TableHead>Company</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead>Package</TableHead>
-            <TableHead className="text-right">Created</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.map((o) => (
-            <TableRow key={o.id} className="hover:bg-muted/40">
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold">
-                      {initials(o.company_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{o.company_name}</div>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      {(o as { profiles?: { email?: string } }).profiles?.email ?? ""}
-                    </div>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="text-xs">{o.contact_email ?? "—"}</div>
-                <div className="text-xs text-muted-foreground">{o.contact_phone ?? ""}</div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className="capitalize">
-                  {o.package}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right text-xs text-muted-foreground font-mono">
-                {fmtDate(o.created_at)}
-              </TableCell>
-            </TableRow>
+            <OrganizerRow key={o.id} organizer={o} />
           ))}
           {filtered.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                 <Building2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
                 {search ? "ไม่พบ organizer ตามคำค้นหา" : "ยังไม่มี organizer — กด Create เพื่อเริ่ม"}
               </TableCell>
@@ -405,6 +385,69 @@ function Organizers() {
         </TableBody>
       </Table>
     </Card>
+  );
+}
+
+/* ---------------- Organizer Row (with reset password) ---------------- */
+function OrganizerRow({ organizer }: { organizer: Awaited<ReturnType<typeof listOrganizers>>[number] }) {
+  const o = organizer;
+  const linked = (o as { profiles?: { email?: string; id?: string } }).profiles;
+  const email = linked?.email ?? o.contact_email;
+
+  const resetMut = useMutation({
+    mutationFn: () => {
+      if (!o.user_id || !email) throw new Error("organizer ไม่มี user/email ที่ link ไว้");
+      return sendPasswordReset(o.user_id, email);
+    },
+    onSuccess: () => toast.success(`ส่งลิงก์ reset password ไปที่ ${email}`),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <TableRow className="hover:bg-muted/40">
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="text-xs bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold">
+              {initials(o.company_name)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{o.company_name}</div>
+            <div className="text-xs text-muted-foreground font-mono">{linked?.email ?? ""}</div>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="text-xs">{o.contact_email ?? "—"}</div>
+        <div className="text-xs text-muted-foreground">{o.contact_phone ?? ""}</div>
+      </TableCell>
+      <TableCell>
+        <Badge variant="outline" className="capitalize">{o.package}</Badge>
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground font-mono">{fmtDate(o.created_at)}</TableCell>
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              disabled={!email || resetMut.isPending}
+              onClick={() => resetMut.mutate()}
+            >
+              <KeyRound className="h-3.5 w-3.5 mr-2" /> Reset password
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(o.id) && toast("Copied organizer ID")}>
+              Copy organizer ID
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -550,10 +593,48 @@ function AllEvents() {
 
 /* ---------------- All Exhibitors ---------------- */
 function AllExhibitors() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const { data: exhibitors = [], isLoading } = useQuery({
     queryKey: ["exhibitors"],
     queryFn: () => listExhibitors(),
+  });
+  const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: () => listEvents() });
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: listProfiles });
+
+  const [open, setOpen] = useState(false);
+  const [eventId, setEventId] = useState("");
+  const [boothId, setBoothId] = useState("");
+  const [company, setCompany] = useState("");
+  const [userId, setUserId] = useState("none");
+  const [description, setDescription] = useState("");
+  const [productInfo, setProductInfo] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [website, setWebsite] = useState("");
+
+  const linkable = profiles.filter((p) => p.role === "exhibitor" || p.role === "visitor");
+
+  const create = useMutation({
+    mutationFn: () =>
+      createExhibitor({
+        eventId,
+        boothId,
+        companyName: company,
+        userId: userId === "none" ? null : userId,
+        description: description || undefined,
+        productInfo: productInfo || undefined,
+        contactEmail: contactEmail || undefined,
+        website: website || undefined,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["exhibitors"] });
+      qc.invalidateQueries({ queryKey: ["platform_stats"] });
+      toast.success("เพิ่ม exhibitor สำเร็จ");
+      setOpen(false);
+      setEventId(""); setBoothId(""); setCompany(""); setUserId("none");
+      setDescription(""); setProductInfo(""); setContactEmail(""); setWebsite("");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const filtered = useMemo(() => {
@@ -584,14 +665,92 @@ function AllExhibitors() {
             {filtered.length} of {exhibitors.length} booths
           </p>
         </div>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหา company / booth..."
-            className="pl-8 h-9 w-72"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหา company / booth..."
+              className="pl-8 h-9 w-72"
+            />
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-gradient-primary" disabled={events.length === 0}>
+                <Plus className="h-4 w-4 mr-1" /> Add Exhibitor
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>เพิ่ม Exhibitor ใหม่ (UC-A03)</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>Event</Label>
+                  <Select value={eventId} onValueChange={setEventId}>
+                    <SelectTrigger><SelectValue placeholder="เลือก event" /></SelectTrigger>
+                    <SelectContent>
+                      {events.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Booth ID</Label>
+                    <Input value={boothId} onChange={(e) => setBoothId(e.target.value)} placeholder="A-101" />
+                  </div>
+                  <div>
+                    <Label>Company Name</Label>
+                    <Input value={company} onChange={(e) => setCompany(e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <Label>Link User (optional)</Label>
+                  <Select value={userId} onValueChange={setUserId}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— ไม่ link —</SelectItem>
+                      {linkable.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.email}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+                </div>
+                <div>
+                  <Label>Product Info</Label>
+                  <Textarea value={productInfo} onChange={(e) => setProductInfo(e.target.value)} rows={2} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Contact Email</Label>
+                    <Input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Website</Label>
+                    <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
+                <Button
+                  className="bg-gradient-primary"
+                  onClick={() => create.mutate()}
+                  disabled={!eventId || !boothId || !company || create.isPending}
+                >
+                  {create.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  สร้าง
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -647,5 +806,70 @@ function AllExhibitors() {
         </TableBody>
       </Table>
     </Card>
+  );
+}
+
+/* ---------------- Invite User Button (UC-R01/A01/O01) ---------------- */
+function InviteUserButton() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<"visitor" | "exhibitor" | "organizer" | "admin">("visitor");
+
+  const invite = useMutation({
+    mutationFn: () => inviteUserByEmail({ email, fullName: fullName || undefined, role }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+      toast.success(`ส่ง invite ไปที่ ${email} แล้ว`);
+      setOpen(false);
+      setEmail(""); setFullName(""); setRole("visitor");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="shrink-0">
+          <Mail className="h-4 w-4 mr-1" /> Invite
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>เชิญผู้ใช้ใหม่ทาง Email</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Email</Label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="user@example.com" />
+            <p className="text-xs text-muted-foreground mt-1">Supabase จะส่ง magic link ไปที่ email นี้</p>
+          </div>
+          <div>
+            <Label>Full name (optional)</Label>
+            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </div>
+          <div>
+            <Label>Role เริ่มต้น</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as typeof role)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="visitor">Visitor</SelectItem>
+                <SelectItem value="exhibitor">Exhibitor</SelectItem>
+                <SelectItem value="organizer">Organizer</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
+          <Button onClick={() => invite.mutate()} disabled={!email || invite.isPending} className="bg-gradient-primary">
+            {invite.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            ส่ง invite
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

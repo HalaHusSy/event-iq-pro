@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -25,6 +28,8 @@ import {
   Calendar,
   Crown,
   Layers,
+  Save,
+  Settings as SettingsIcon,
   ShieldCheck,
   Users,
   Loader2,
@@ -33,15 +38,18 @@ import { toast } from "sonner";
 import {
   getPlatformStats,
   listAuditLogs,
+  listPlatformSettings,
   listProfiles,
   setUserRole,
+  upsertPlatformSetting,
 } from "@/lib/data/queries";
-import type { AppRole } from "@/lib/supabase/types";
+import type { AppRole, Json } from "@/lib/supabase/types";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: Activity },
   { id: "admins", label: "Manage Admins", icon: Crown },
   { id: "users", label: "All Users", icon: Users },
+  { id: "settings", label: "Platform Settings", icon: SettingsIcon },
   { id: "audit", label: "Audit Logs", icon: ShieldCheck },
 ];
 
@@ -63,6 +71,7 @@ export default function RootDashboard() {
       {view === "overview" && <Overview />}
       {view === "admins" && <ManageAdmins />}
       {view === "users" && <AllUsers />}
+      {view === "settings" && <PlatformSettings />}
       {view === "audit" && <AuditLogs />}
     </DashboardLayout>
   );
@@ -277,6 +286,194 @@ function AllUsers() {
           ))}
         </TableBody>
       </Table>
+    </Card>
+  );
+}
+
+/* ---------------- Platform Settings (UC-R02) ---------------- */
+type BrandingValue = { name?: string; tagline?: string; primary_color?: string };
+type PackageValue = { id: string; name: string; price_thb: number; features: string[] };
+type ContactValue = { support_email?: string; phone?: string };
+
+function PlatformSettings() {
+  const qc = useQueryClient();
+  const { data: settings = [], isLoading } = useQuery({
+    queryKey: ["platform_settings"],
+    queryFn: listPlatformSettings,
+  });
+
+  const byKey = (k: string) => settings.find((s) => s.key === k)?.value as Json | undefined;
+
+  const save = useMutation({
+    mutationFn: (input: { key: string; value: Json }) =>
+      upsertPlatformSetting(input.key, input.value),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["platform_settings"] });
+      toast.success("บันทึก settings แล้ว");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+
+  return (
+    <div className="space-y-6">
+      <BrandingForm
+        value={(byKey("branding") as BrandingValue) ?? {}}
+        onSave={(v) => save.mutate({ key: "branding", value: v as Json })}
+        saving={save.isPending}
+      />
+      <ContactForm
+        value={(byKey("contact") as ContactValue) ?? {}}
+        onSave={(v) => save.mutate({ key: "contact", value: v as Json })}
+        saving={save.isPending}
+      />
+      <PackagesEditor
+        value={(byKey("packages") as PackageValue[]) ?? []}
+        onSave={(v) => save.mutate({ key: "packages", value: v as Json })}
+        saving={save.isPending}
+      />
+    </div>
+  );
+}
+
+function BrandingForm({ value, onSave, saving }: { value: BrandingValue; onSave: (v: BrandingValue) => void; saving: boolean }) {
+  const [name, setName] = useState(value.name ?? "");
+  const [tagline, setTagline] = useState(value.tagline ?? "");
+  const [color, setColor] = useState(value.primary_color ?? "#C28840");
+  useEffect(() => {
+    setName(value.name ?? "");
+    setTagline(value.tagline ?? "");
+    setColor(value.primary_color ?? "#C28840");
+  }, [value.name, value.tagline, value.primary_color]);
+
+  return (
+    <Card className="glass p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold">Branding</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">ชื่อ platform, tagline, primary color</p>
+        </div>
+        <Badge variant="outline" className="font-mono text-xs">key: branding</Badge>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div>
+          <Label>Platform Name</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div>
+          <Label>Primary Color</Label>
+          <div className="flex items-center gap-2">
+            <Input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-16 h-9 p-1" />
+            <Input value={color} onChange={(e) => setColor(e.target.value)} className="font-mono" />
+          </div>
+        </div>
+      </div>
+      <div>
+        <Label>Tagline</Label>
+        <Input value={tagline} onChange={(e) => setTagline(e.target.value)} />
+      </div>
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => onSave({ name, tagline, primary_color: color })} disabled={saving} className="bg-gradient-primary">
+          {saving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+          บันทึก
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+function ContactForm({ value, onSave, saving }: { value: ContactValue; onSave: (v: ContactValue) => void; saving: boolean }) {
+  const [email, setEmail] = useState(value.support_email ?? "");
+  const [phone, setPhone] = useState(value.phone ?? "");
+  useEffect(() => {
+    setEmail(value.support_email ?? "");
+    setPhone(value.phone ?? "");
+  }, [value.support_email, value.phone]);
+
+  return (
+    <Card className="glass p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold">Contact / Support</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">ช่องทางติดต่อ support</p>
+        </div>
+        <Badge variant="outline" className="font-mono text-xs">key: contact</Badge>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div>
+          <Label>Support Email</Label>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div>
+          <Label>Phone</Label>
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => onSave({ support_email: email, phone })} disabled={saving} className="bg-gradient-primary">
+          {saving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+          บันทึก
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+function PackagesEditor({ value, onSave, saving }: { value: PackageValue[]; onSave: (v: PackageValue[]) => void; saving: boolean }) {
+  const [text, setText] = useState(() => JSON.stringify(value, null, 2));
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { setText(JSON.stringify(value, null, 2)); }, [value]);
+
+  return (
+    <Card className="glass p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold">Pricing Packages</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">รายการ package + ราคา (JSON array)</p>
+        </div>
+        <Badge variant="outline" className="font-mono text-xs">key: packages</Badge>
+      </div>
+      <Textarea
+        rows={10}
+        value={text}
+        onChange={(e) => { setText(e.target.value); setErr(null); }}
+        className="font-mono text-xs"
+      />
+      {err && <div className="text-xs text-destructive">{err}</div>}
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          onClick={() => {
+            try {
+              const parsed = JSON.parse(text);
+              if (!Array.isArray(parsed)) throw new Error("ต้องเป็น array");
+              onSave(parsed as PackageValue[]);
+            } catch (e) {
+              setErr((e as Error).message);
+            }
+          }}
+          disabled={saving}
+          className="bg-gradient-primary"
+        >
+          {saving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+          บันทึก
+        </Button>
+      </div>
+      <div className="grid sm:grid-cols-3 gap-2 pt-2 border-t">
+        {value.map((p) => (
+          <div key={p.id} className="p-3 rounded-lg border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-sm">{p.name}</div>
+              <Badge variant="secondary" className="font-mono text-xs">{p.id}</Badge>
+            </div>
+            <div className="text-lg font-bold mt-1">฿{p.price_thb.toLocaleString()}</div>
+            <ul className="text-xs text-muted-foreground mt-2 space-y-0.5">
+              {p.features?.map((f, i) => <li key={i}>✓ {f}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }
