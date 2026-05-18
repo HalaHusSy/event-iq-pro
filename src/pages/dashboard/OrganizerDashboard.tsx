@@ -448,7 +448,6 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
   const { data: allExhibitors = [], isLoading } = useQuery({
     queryKey: ["exhibitors", organizerId],
     queryFn: () => listExhibitors(),
-    enabled: events.length > 0,
   });
   const exhibitors = useMemo(
     () => allExhibitors.filter((x) => eventIds.includes(x.event_id)),
