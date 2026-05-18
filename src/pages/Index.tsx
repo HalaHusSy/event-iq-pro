@@ -96,10 +96,8 @@ const Index = () => {
       <section className="container py-20">
         <div className="text-center mb-10 max-w-xl mx-auto">
           <Badge variant="outline" className="mb-3 font-mono text-xs">CORE FEATURES</Badge>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">ฟีเจอร์หลัก</h2>
-          <p className="text-muted-foreground mt-2 text-sm">
-            ออกแบบมาเพื่อให้ผู้เยี่ยมชมเจอบูธที่ใช่ และผู้ออกบูธได้ลูกค้าตรงเป้า
-          </p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{t("features.title")}</h2>
+          <p className="text-muted-foreground mt-2 text-sm">{t("features.sub")}</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
           {features.map((f) => (

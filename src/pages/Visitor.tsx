@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
-import { Target, MessageSquare, Send, Sparkles, Mic2, Bookmark, MapPin, ChevronDown, Brain, X, GitCompare, Filter, Calendar } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Target, MessageSquare, Send, Sparkles, Mic2, Bookmark, MapPin, ChevronDown, Brain, X, GitCompare, Filter, Calendar, Loader2 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,20 +15,41 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { Match, sampleMatches, faqs } from "@/lib/mock";
 import { PLATFORM_EVENTS } from "@/lib/mock/events";
+import { listEvents } from "@/lib/data/queries";
 import { toast } from "sonner";
+
+// Cover emoji picker for DB events (mirrors logic in Events.tsx)
+function pickCover(name: string): string {
+  const n = name.toLowerCase();
+  if (/(tech|ai|software|saas|cloud|data)/.test(n)) return "🚀";
+  if (/(food|cook|coffee|restaurant|culinary)/.test(n)) return "🍜";
+  if (/(money|finance|bank|fintech|invest)/.test(n)) return "💰";
+  if (/(health|medical|hospital|wellness|pharma)/.test(n)) return "🏥";
+  if (/(green|eco|sustain|energy|environment)/.test(n)) return "🌱";
+  if (/(education|edu|school|learn|train)/.test(n)) return "🎓";
+  return "🎪";
+}
 
 const tabs = [
   { id: "find", icon: Target, key: "tab.find" },
   { id: "ask", icon: MessageSquare, key: "tab.ask" },
 ];
 
-function EventBanner({ slug }: { slug: string }) {
-  const { t, lang } = useI18n();
-  const event = PLATFORM_EVENTS.find((e) => e.slug === slug);
-  if (!event) return null;
+type BannerEvent = {
+  cover: string;
+  name: string;
+  status: "live" | "upcoming" | "past";
+  startDate: string;
+  endDate: string;
+  venue: string;
+};
 
+function EventBanner({ event }: { event: BannerEvent }) {
+  const { t, lang } = useI18n();
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, { day: "numeric", month: "short", year: "numeric" });
+    iso
+      ? new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, { day: "numeric", month: "short", year: "numeric" })
+      : "—";
   const statusColor =
     event.status === "live" ? "bg-emerald-500" : event.status === "upcoming" ? "bg-amber-500" : "bg-muted-foreground";
   const statusLabel =
@@ -60,9 +82,46 @@ export default function VisitorPortal() {
   const eventSlug = params.get("event");
   const { t } = useI18n();
 
-  // STRICT: ต้องเลือก event ก่อนใช้งาน Visitor portal
-  const eventExists = eventSlug && PLATFORM_EVENTS.some((e) => e.slug === eventSlug);
-  if (!eventExists) {
+  // Resolve event from either mock slug OR DB id
+  const { data: dbEvents = [], isLoading: dbLoading } = useQuery({
+    queryKey: ["events"],
+    queryFn: () => listEvents(),
+  });
+
+  const mockEvent = eventSlug ? PLATFORM_EVENTS.find((e) => e.slug === eventSlug) : null;
+  const dbEvent = eventSlug ? dbEvents.find((e) => e.id === eventSlug) : null;
+
+  const banner: BannerEvent | null = mockEvent
+    ? {
+        cover: mockEvent.cover,
+        name: mockEvent.name,
+        status: mockEvent.status,
+        startDate: mockEvent.startDate,
+        endDate: mockEvent.endDate,
+        venue: mockEvent.venue,
+      }
+    : dbEvent
+    ? {
+        cover: pickCover(dbEvent.name),
+        name: dbEvent.name,
+        status: (dbEvent.status as BannerEvent["status"]) ?? "upcoming",
+        startDate: dbEvent.start_date ?? "",
+        endDate: dbEvent.end_date ?? "",
+        venue: dbEvent.location ?? "",
+      }
+    : null;
+
+  // STRICT: ต้องเลือก event ก่อนใช้งาน Visitor portal — wait for DB before redirecting
+  if (dbLoading) {
+    return (
+      <AppShell>
+        <div className="container py-24 grid place-items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AppShell>
+    );
+  }
+  if (!banner) {
     return <Navigate to="/events" state={{ requireEvent: true }} replace />;
   }
 
@@ -75,7 +134,7 @@ export default function VisitorPortal() {
   return (
     <AppShell>
       <div className="container py-8">
-        {eventSlug && <EventBanner slug={eventSlug} />}
+        {banner && <EventBanner event={banner} />}
         <div className="grid lg:grid-cols-[220px_1fr] gap-6">
           <aside className="lg:sticky lg:top-20 lg:self-start">
             <Card className="p-2">

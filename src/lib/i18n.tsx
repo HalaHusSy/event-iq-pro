@@ -43,6 +43,17 @@ export const dict: Dict = {
   "hero.cta.exhibitor": tr("ลงทะเบียนเป็นผู้ออกบูธ", "Register as Exhibitor", { zh: "注册为参展商", fr: "S'inscrire comme exposant", vi: "Đăng ký nhà triển lãm", ja: "出展者として登録" }),
 
   // features (kept th/en, falls back gracefully)
+  "features.title": tr("ฟีเจอร์หลัก", "Core Features", { zh: "核心功能", fr: "Fonctionnalités", vi: "Tính năng chính", ja: "主な機能" }),
+  "features.sub": tr(
+    "ออกแบบมาเพื่อให้ผู้เยี่ยมชมเจอบูธที่ใช่ และผู้ออกบูธได้ลูกค้าตรงเป้า",
+    "Designed to help visitors find the right booth and exhibitors reach the right customers.",
+    {
+      zh: "帮助访客找到合适的展位，让参展商触达精准客户。",
+      fr: "Conçu pour aider les visiteurs à trouver le bon stand et les exposants à toucher les bons clients.",
+      vi: "Giúp khách tham quan tìm gian hàng phù hợp và nhà triển lãm tiếp cận khách hàng mục tiêu.",
+      ja: "来場者に最適なブースを、出展者に最適な顧客を結び付けます。",
+    }
+  ),
   "f1.title": tr("จับคู่บูธอัจฉริยะ", "Booth Matching"),
   "f1.desc": tr("เล่า pain ของคุณ AI หาบูธที่ตรงที่สุดให้ทันที", "Describe your pain, get the perfect booth match instantly."),
   "f2.title": tr("ถามอะไรก็ได้เกี่ยวกับงาน", "Event FAQ"),
