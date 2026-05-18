@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -34,9 +44,13 @@ import {
   Calendar as CalendarIcon,
   Layers,
   Loader2,
+  MoreHorizontal,
   Plus,
+  RefreshCw,
+  Search,
   ShieldCheck,
   Trash2,
+  Activity,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -56,17 +70,42 @@ const NAV = [
   { id: "exhibitors", label: "All Exhibitors", icon: Layers },
 ];
 
+function fmtDate(iso?: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function initials(name?: string | null) {
+  const src = name?.trim() || "?";
+  const parts = src.split(/[\s@.]+/).filter(Boolean);
+  return (parts[0]?.[0] ?? "?").toUpperCase() + (parts[1]?.[0]?.toUpperCase() ?? "");
+}
+
 export default function AdminDashboard() {
   const [view, setView] = useState("overview");
+  const qc = useQueryClient();
   return (
     <DashboardLayout
       title="Admin Console"
-      subtitle="Platform administrator — จัดการ organizer / event / support"
+      subtitle="Platform administrator — จัดการ organizer / event / exhibitor"
       roleBadge="ADMIN"
       roleBadgeClass="bg-red-500/15 text-red-700 border-red-500/30"
       nav={NAV}
       activeId={view}
       onSelect={setView}
+      headerActions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            qc.invalidateQueries();
+            toast.success("รีเฟรชข้อมูลแล้ว");
+          }}
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+          Refresh
+        </Button>
+      }
     >
       {view === "overview" && <Overview />}
       {view === "organizers" && <Organizers />}
@@ -76,30 +115,92 @@ export default function AdminDashboard() {
   );
 }
 
+/* ---------------- Overview ---------------- */
 function Overview() {
-  const { data } = useQuery({ queryKey: ["platform_stats"], queryFn: getPlatformStats });
-  const s = data ?? {};
-  const cards = [
-    { label: "Organizers", value: s.total_organizers, icon: Building2, color: "from-indigo-500 to-violet-500" },
-    { label: "Events", value: s.total_events, icon: CalendarIcon, color: "from-rose-500 to-amber-500" },
-    { label: "Exhibitors", value: s.total_exhibitors, icon: Layers, color: "from-emerald-500 to-teal-500" },
-    { label: "Live Events", value: s.events_live, icon: ShieldCheck, color: "from-green-500 to-lime-500" },
-  ];
+  const { data: stats } = useQuery({ queryKey: ["platform_stats"], queryFn: getPlatformStats });
+  const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: () => listEvents() });
+  const { data: organizers = [] } = useQuery({ queryKey: ["organizers"], queryFn: listOrganizers });
+
+  const s = stats ?? {};
+  const live = events.filter((e) => e.status === "live").length;
+  const upcoming = events.filter((e) => e.status === "upcoming").length;
+  const past = events.filter((e) => e.status === "past").length;
+
+  const recentEvents = events.slice(0, 5);
+
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((c) => (
-        <Card key={c.label} className="p-5 glass">
-          <div className={`mb-3 grid h-10 w-10 place-items-center rounded-lg bg-gradient-to-br ${c.color} text-white shadow-md`}>
-            <c.icon className="h-5 w-5" />
+    <div className="space-y-6">
+      {/* Top stats */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="Organizers"
+          value={s.total_organizers ?? organizers.length}
+          icon={Building2}
+          gradient="from-indigo-500 to-violet-500"
+          hint="active companies"
+        />
+        <StatCard
+          label="Events"
+          value={s.total_events ?? events.length}
+          icon={CalendarIcon}
+          gradient="from-rose-500 to-amber-500"
+          hint={`${live} live · ${upcoming} upcoming · ${past} past`}
+        />
+        <StatCard
+          label="Exhibitors"
+          value={s.total_exhibitors}
+          icon={Layers}
+          gradient="from-emerald-500 to-teal-500"
+          hint="total booths"
+        />
+        <StatCard
+          label="Live Now"
+          value={s.events_live ?? live}
+          icon={Activity}
+          gradient="from-green-500 to-lime-500"
+          hint="events in progress"
+        />
+      </div>
+
+      {/* Recent events */}
+      <Card className="glass">
+        <div className="p-5 border-b flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold">Recent Events</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">งานล่าสุดในระบบ</p>
           </div>
-          <div className="text-3xl font-bold font-mono">{c.value ?? 0}</div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{c.label}</div>
-        </Card>
-      ))}
+          <Badge variant="outline" className="font-mono text-xs">
+            {recentEvents.length} of {events.length}
+          </Badge>
+        </div>
+        <div className="divide-y">
+          {recentEvents.length === 0 && (
+            <div className="p-8 text-center text-sm text-muted-foreground">ยังไม่มี event</div>
+          )}
+          {recentEvents.map((e) => {
+            const org = (e as { organizers?: { company_name?: string } }).organizers;
+            return (
+              <div key={e.id} className="p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shrink-0">
+                  <CalendarIcon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{e.name}</div>
+                  <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                    {fmtDate(e.start_date)} → {fmtDate(e.end_date)} · {org?.company_name ?? "—"}
+                  </div>
+                </div>
+                <StatusBadge status={e.status} />
+              </div>
+            );
+          })}
+        </div>
+      </Card>
     </div>
   );
 }
 
+/* ---------------- Organizers ---------------- */
 function Organizers() {
   const qc = useQueryClient();
   const { data: organizers = [], isLoading } = useQuery({
@@ -112,11 +213,23 @@ function Organizers() {
   });
 
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [userId, setUserId] = useState("");
   const [company, setCompany] = useState("");
   const [pkg, setPkg] = useState("starter");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return organizers;
+    return organizers.filter(
+      (o) =>
+        o.company_name?.toLowerCase().includes(q) ||
+        o.contact_email?.toLowerCase().includes(q) ||
+        o.package?.toLowerCase().includes(q)
+    );
+  }, [organizers, search]);
 
   const mut = useMutation({
     mutationFn: () =>
@@ -143,77 +256,101 @@ function Organizers() {
 
   const eligible = profiles.filter((p) => p.role === "visitor");
 
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+  if (isLoading)
+    return (
+      <Card className="p-12 grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </Card>
+    );
 
   return (
-    <Card className="p-5 glass">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold">Organizers ({organizers.length})</h2>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="bg-gradient-primary">
-              <Plus className="h-4 w-4 mr-1" /> Create Organizer
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>สร้าง Organizer ใหม่</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label>เลือก User (visitor)</Label>
-                <Select value={userId} onValueChange={setUserId}>
-                  <SelectTrigger><SelectValue placeholder="เลือก user" /></SelectTrigger>
-                  <SelectContent>
-                    {eligible.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.email} — {p.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  User ต้อง sign up เป็น visitor ก่อน
-                </p>
-              </div>
-              <div>
-                <Label>ชื่อบริษัท</Label>
-                <Input value={company} onChange={(e) => setCompany(e.target.value)} />
-              </div>
-              <div>
-                <Label>Package</Label>
-                <Select value={pkg} onValueChange={setPkg}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="starter">Starter</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Contact Email</Label>
-                  <Input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Contact Phone</Label>
-                  <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
-              <Button
-                onClick={() => mut.mutate()}
-                disabled={!userId || !company || mut.isPending}
-              >
-                {mut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                สร้าง
+    <Card className="glass">
+      <div className="p-5 border-b flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold">Organizers</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{organizers.length} companies registered</p>
+        </div>
+        <div className="flex items-center gap-2 flex-1 max-w-md justify-end">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหา company..."
+              className="pl-8 h-9"
+            />
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-gradient-primary shrink-0">
+                <Plus className="h-4 w-4 mr-1" /> Create
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>สร้าง Organizer ใหม่</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>เลือก User (visitor)</Label>
+                  <Select value={userId} onValueChange={setUserId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือก user" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eligible.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.email} — {p.full_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">User ต้อง sign up เป็น visitor ก่อน</p>
+                </div>
+                <div>
+                  <Label>ชื่อบริษัท</Label>
+                  <Input value={company} onChange={(e) => setCompany(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Package</Label>
+                  <Select value={pkg} onValueChange={setPkg}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="starter">Starter</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Contact Email</Label>
+                    <Input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Contact Phone</Label>
+                    <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>
+                  ยกเลิก
+                </Button>
+                <Button
+                  className="bg-gradient-primary"
+                  onClick={() => mut.mutate()}
+                  disabled={!userId || !company || mut.isPending}
+                >
+                  {mut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  สร้าง
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Table>
@@ -222,28 +359,46 @@ function Organizers() {
             <TableHead>Company</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead>Package</TableHead>
-            <TableHead>Created</TableHead>
+            <TableHead className="text-right">Created</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {organizers.map((o) => (
-            <TableRow key={o.id}>
-              <TableCell className="font-medium">{o.company_name}</TableCell>
-              <TableCell className="text-xs">
-                {o.contact_email ?? "—"}
-                <br />
-                <span className="text-muted-foreground">{o.contact_phone ?? ""}</span>
+          {filtered.map((o) => (
+            <TableRow key={o.id} className="hover:bg-muted/40">
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold">
+                      {initials(o.company_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">{o.company_name}</div>
+                    <div className="text-xs text-muted-foreground font-mono">
+                      {(o as { profiles?: { email?: string } }).profiles?.email ?? ""}
+                    </div>
+                  </div>
+                </div>
               </TableCell>
-              <TableCell><Badge>{o.package}</Badge></TableCell>
-              <TableCell className="text-xs text-muted-foreground">
-                {new Date(o.created_at).toLocaleDateString()}
+              <TableCell>
+                <div className="text-xs">{o.contact_email ?? "—"}</div>
+                <div className="text-xs text-muted-foreground">{o.contact_phone ?? ""}</div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" className="capitalize">
+                  {o.package}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right text-xs text-muted-foreground font-mono">
+                {fmtDate(o.created_at)}
               </TableCell>
             </TableRow>
           ))}
-          {organizers.length === 0 && (
+          {filtered.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
-                ยังไม่มี organizer
+              <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+                <Building2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                {search ? "ไม่พบ organizer ตามคำค้นหา" : "ยังไม่มี organizer — กด Create เพื่อเริ่ม"}
               </TableCell>
             </TableRow>
           )}
@@ -253,8 +408,11 @@ function Organizers() {
   );
 }
 
+/* ---------------- All Events ---------------- */
 function AllEvents() {
   const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
     queryFn: () => listEvents(),
@@ -263,97 +421,226 @@ function AllEvents() {
     mutationFn: deleteEvent,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["events"] });
+      qc.invalidateQueries({ queryKey: ["platform_stats"] });
       toast.success("ลบ event แล้ว");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return events.filter((e) => {
+      if (statusFilter !== "all" && e.status !== statusFilter) return false;
+      if (!q) return true;
+      const org = (e as { organizers?: { company_name?: string } }).organizers?.company_name ?? "";
+      return e.name.toLowerCase().includes(q) || org.toLowerCase().includes(q) || (e.location ?? "").toLowerCase().includes(q);
+    });
+  }, [events, search, statusFilter]);
+
+  if (isLoading)
+    return (
+      <Card className="p-12 grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </Card>
+    );
 
   return (
-    <Card className="p-5 glass">
-      <h2 className="font-semibold mb-3">Events ทั้งหมด ({events.length})</h2>
+    <Card className="glass">
+      <div className="p-5 border-b flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold">All Events</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {filtered.length} of {events.length} events
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-32 h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All status</SelectItem>
+              <SelectItem value="live">Live</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="past">Past</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหา event..."
+              className="pl-8 h-9 w-56"
+            />
+          </div>
+        </div>
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead>Event</TableHead>
             <TableHead>Organizer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {events.map((e) => {
+          {filtered.map((e) => {
             const org = (e as { organizers?: { company_name?: string } }).organizers;
             return (
-              <TableRow key={e.id}>
-                <TableCell className="font-medium">{e.name}</TableCell>
-                <TableCell>{org?.company_name ?? "—"}</TableCell>
-                <TableCell className="text-xs">
-                  {e.start_date} → {e.end_date}
-                </TableCell>
-                <TableCell><Badge variant="outline">{e.status}</Badge></TableCell>
+              <TableRow key={e.id} className="hover:bg-muted/40">
                 <TableCell>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      if (confirm(`ลบ event "${e.name}"?`)) del.mutate(e.id);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="font-medium">{e.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5 truncate max-w-xs">
+                    {e.location ?? ""}
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm">{org?.company_name ?? "—"}</TableCell>
+                <TableCell className="text-xs font-mono">
+                  {fmtDate(e.start_date)}
+                  <div className="text-muted-foreground">→ {fmtDate(e.end_date)}</div>
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={e.status} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => navigator.clipboard.writeText(e.id) && toast("Copied event ID")}
+                      >
+                        Copy event ID
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => {
+                          if (confirm(`ลบ event "${e.name}"?`)) del.mutate(e.id);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );
           })}
+          {filtered.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                <CalendarIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                {search || statusFilter !== "all" ? "ไม่พบ event ตามตัวกรอง" : "ยังไม่มี event"}
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </Card>
   );
 }
 
+/* ---------------- All Exhibitors ---------------- */
 function AllExhibitors() {
+  const [search, setSearch] = useState("");
   const { data: exhibitors = [], isLoading } = useQuery({
     queryKey: ["exhibitors"],
     queryFn: () => listExhibitors(),
   });
 
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return exhibitors;
+    return exhibitors.filter(
+      (x) =>
+        x.company_name?.toLowerCase().includes(q) ||
+        x.booth_id?.toLowerCase().includes(q) ||
+        x.contact_email?.toLowerCase().includes(q) ||
+        (x as { events?: { name?: string } }).events?.name?.toLowerCase().includes(q)
+    );
+  }, [exhibitors, search]);
+
+  if (isLoading)
+    return (
+      <Card className="p-12 grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </Card>
+    );
 
   return (
-    <Card className="p-5 glass">
-      <h2 className="font-semibold mb-3">Exhibitors ทั้งหมด ({exhibitors.length})</h2>
+    <Card className="glass">
+      <div className="p-5 border-b flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold">All Exhibitors</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {filtered.length} of {exhibitors.length} booths
+          </p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหา company / booth..."
+            className="pl-8 h-9 w-72"
+          />
+        </div>
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Booth</TableHead>
             <TableHead>Company</TableHead>
+            <TableHead>Booth</TableHead>
             <TableHead>Event</TableHead>
             <TableHead>Contact</TableHead>
-            <TableHead>Linked User</TableHead>
+            <TableHead className="text-right">User</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {exhibitors.map((x) => {
+          {filtered.map((x) => {
             const ev = (x as { events?: { name?: string } }).events;
             return (
-              <TableRow key={x.id}>
-                <TableCell className="font-mono">{x.booth_id}</TableCell>
-                <TableCell className="font-medium">{x.company_name}</TableCell>
+              <TableRow key={x.id} className="hover:bg-muted/40">
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl shrink-0 leading-none">{x.logo_url || "🏢"}</div>
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{x.company_name}</div>
+                      {x.tags && x.tags.length > 0 && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          {x.tags.slice(0, 3).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className="font-mono">
+                    {x.booth_id}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-xs">{ev?.name ?? "—"}</TableCell>
                 <TableCell className="text-xs">{x.contact_email ?? "—"}</TableCell>
-                <TableCell>
-                  {x.user_id ? <Badge variant="outline">linked</Badge> : <Badge variant="secondary">unlinked</Badge>}
+                <TableCell className="text-right">
+                  <StatusBadge status={x.user_id ? "linked" : "unlinked"} />
                 </TableCell>
               </TableRow>
             );
           })}
-          {exhibitors.length === 0 && (
+          {filtered.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
-                ยังไม่มี exhibitor
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                <Layers className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                {search ? "ไม่พบ exhibitor ตามคำค้นหา" : "ยังไม่มี exhibitor"}
               </TableCell>
             </TableRow>
           )}
