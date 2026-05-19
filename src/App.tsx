@@ -23,7 +23,25 @@ import ExhibitorDashboard from "./pages/dashboard/ExhibitorDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
 
-const queryClient = new QueryClient();
+// Sensible defaults so a single hung request doesn't freeze the UI:
+// - retry once only (default is 3 with exponential backoff = ~30s before giving up)
+// - 30s stale time to dedupe rapid re-renders
+// - no auto-refetch on tab focus (was causing perceived "stuck loading")
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      retryDelay: 800,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
