@@ -30,11 +30,18 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 import {
   createLead,
-  getMyExhibitor,
   listAnnouncements,
   listLeads,
+  listMyExhibitors,
   updateExhibitor,
 } from "@/lib/data/queries";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { EventRow } from "@/lib/supabase/types";
 
 const NAV = [
@@ -56,10 +63,20 @@ function fmtDateTime(iso?: string | null) {
 export default function ExhibitorDashboard() {
   const [view, setView] = useState("booth");
   const qc = useQueryClient();
-  const { data: booth, isLoading } = useQuery({
-    queryKey: ["my_exhibitor"],
-    queryFn: getMyExhibitor,
+  const { data: booths = [], isLoading } = useQuery({
+    queryKey: ["my_exhibitors"],
+    queryFn: listMyExhibitors,
   });
+
+  const [selectedBoothId, setSelectedBoothId] = useState<string | null>(null);
+  useEffect(() => {
+    if (booths.length === 0) {
+      setSelectedBoothId(null);
+    } else if (!selectedBoothId || !booths.some((b) => b.id === selectedBoothId)) {
+      setSelectedBoothId(booths[0].id);
+    }
+  }, [booths, selectedBoothId]);
+  const booth = booths.find((b) => b.id === selectedBoothId) ?? null;
 
   const [form, setForm] = useState({
     company_name: "",
@@ -106,7 +123,7 @@ export default function ExhibitorDashboard() {
           .filter(Boolean),
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my_exhibitor"] });
+      qc.invalidateQueries({ queryKey: ["my_exhibitors"] });
       qc.invalidateQueries({ queryKey: ["exhibitors"] });
       toast.success("บันทึก booth profile แล้ว");
     },
@@ -116,7 +133,11 @@ export default function ExhibitorDashboard() {
   return (
     <DashboardLayout
       title="My Booth"
-      subtitle={booth ? `Booth ${booth.booth_id} • ${booth.company_name}` : "Booth profile"}
+      subtitle={
+        booth
+          ? `Booth ${booth.booth_id} • ${booth.company_name}${booths.length > 1 ? ` (${booths.length} booths)` : ""}`
+          : "Booth profile"
+      }
       roleBadge="EXHIBITOR"
       roleBadgeClass="bg-emerald-500/15 text-emerald-700 border-emerald-500/30"
       nav={NAV}
@@ -132,7 +153,30 @@ export default function ExhibitorDashboard() {
             กรุณาให้ organizer สร้าง booth และ link มาที่ account นี้ก่อน
           </p>
         </Card>
-      ) : view === "event" ? (
+      ) : (
+        <>
+          {booths.length > 1 && (
+            <Card className="p-3 glass mb-4 flex items-center gap-3">
+              <Label className="text-xs text-muted-foreground shrink-0">เลือก booth ({booths.length}):</Label>
+              <Select value={selectedBoothId ?? ""} onValueChange={setSelectedBoothId}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {booths.map((b) => {
+                    const ev = (b as unknown as { events?: { name?: string } }).events;
+                    return (
+                      <SelectItem key={b.id} value={b.id}>
+                        <span className="font-mono">{b.booth_id}</span> · {b.company_name}
+                        {ev?.name ? ` — ${ev.name}` : ""}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </Card>
+          )}
+          {view === "event" ? (
         <EventInfo eventId={booth.event_id} />
       ) : view === "leads" ? (
         <Leads exhibitorId={booth.id} />
@@ -230,6 +274,8 @@ export default function ExhibitorDashboard() {
         </Card>
       ) : (
         <BoothPreview booth={booth} form={form} />
+      )}
+        </>
       )}
     </DashboardLayout>
   );

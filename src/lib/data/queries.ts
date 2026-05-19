@@ -42,15 +42,20 @@ export async function listExhibitors(eventId?: string) {
 }
 
 export async function getMyExhibitor(): Promise<Exhibitor | null> {
+  const list = await listMyExhibitors();
+  return list[0] ?? null;
+}
+
+export async function listMyExhibitors(): Promise<Exhibitor[]> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) return [];
   const { data, error } = await supabase
     .from("exhibitors")
-    .select("*")
+    .select("*, events(name, start_date, end_date, location)")
     .eq("user_id", user.id)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
   if (error) throw error;
-  return data;
+  return (data ?? []) as Exhibitor[];
 }
 
 export async function getMyOrganizer() {

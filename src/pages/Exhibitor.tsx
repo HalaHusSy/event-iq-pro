@@ -28,7 +28,14 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recha
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { supabase } from "@/lib/supabase/client";
-import { getMyExhibitor, listLeads, updateExhibitor } from "@/lib/data/queries";
+import { listMyExhibitors, listLeads, updateExhibitor } from "@/lib/data/queries";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { EventRow } from "@/lib/supabase/types";
 
 function fmtTimeAgo(iso: string) {
@@ -53,11 +60,20 @@ export default function Exhibitor() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data: booth, isLoading: boothLoading } = useQuery({
-    queryKey: ["my_exhibitor"],
-    queryFn: getMyExhibitor,
+  const { data: booths = [], isLoading: boothLoading } = useQuery({
+    queryKey: ["my_exhibitors"],
+    queryFn: listMyExhibitors,
     enabled: !!session?.user,
   });
+  const [selectedBoothId, setSelectedBoothId] = useState<string | null>(null);
+  useEffect(() => {
+    if (booths.length === 0) {
+      setSelectedBoothId(null);
+    } else if (!selectedBoothId || !booths.some((b) => b.id === selectedBoothId)) {
+      setSelectedBoothId(booths[0].id);
+    }
+  }, [booths, selectedBoothId]);
+  const booth = booths.find((b) => b.id === selectedBoothId) ?? null;
 
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<"edit" | "view">("edit");
@@ -94,7 +110,7 @@ export default function Exhibitor() {
         tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my_exhibitor"] });
+      qc.invalidateQueries({ queryKey: ["my_exhibitors"] });
       qc.invalidateQueries({ queryKey: ["exhibitors"] });
       toast.success(lang === "th" ? "บันทึก booth profile แล้ว" : "Saved!");
       setMode("view");
@@ -186,6 +202,29 @@ export default function Exhibitor() {
               ? `Booth ${booth.booth_id} — กรอก 3 ขั้นตอน ข้อมูลจะบันทึกเข้าระบบจริง`
               : `Booth ${booth.booth_id} — fill 3 steps, saved to live DB`}
           </p>
+          {booths.length > 1 && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground shrink-0">
+                {lang === "th" ? `เลือก booth (${booths.length}):` : `Select booth (${booths.length}):`}
+              </span>
+              <Select value={selectedBoothId ?? ""} onValueChange={setSelectedBoothId}>
+                <SelectTrigger className="h-9 max-w-md">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {booths.map((b) => {
+                    const ev = (b as unknown as { events?: { name?: string } }).events;
+                    return (
+                      <SelectItem key={b.id} value={b.id}>
+                        <span className="font-mono">{b.booth_id}</span> · {b.company_name}
+                        {ev?.name ? ` — ${ev.name}` : ""}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between mb-8">
           {steps.map((s, i) => (
