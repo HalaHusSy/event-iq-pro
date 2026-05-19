@@ -80,8 +80,6 @@ export default function Exhibitor() {
         promotion: booth.promotion ?? "",
         tags: (booth.tags ?? []).join(", "),
       });
-      // ถ้า booth มีข้อมูลครบแล้ว ให้ขึ้น view mode ไปเลย
-      if (booth.description && (booth.tags ?? []).length > 0) setMode("view");
     }
   }, [booth?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
