@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase/client";
 import {
   ArrowLeft,
@@ -33,6 +34,7 @@ const ROLE_HOME: Record<string, string> = {
 
 export default function Login() {
   const { session, profile, signIn, signUp, bootstrapRoot, loading } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as LocationState | null)?.from;
@@ -218,7 +220,7 @@ export default function Login() {
                     </div>
                     <Button type="submit" disabled={submitting} className="w-full bg-gradient-primary shadow-md mt-2">
                       {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      เข้าสู่ระบบ
+                      {submitting ? t("loading.signin") : t("nav.signin")}
                     </Button>
                   </form>
                 </TabsContent>

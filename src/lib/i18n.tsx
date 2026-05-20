@@ -150,6 +150,17 @@ export const dict: Dict = {
 
   // common
   "common.back": tr("กลับหน้าหลัก", "Back to home", { zh: "返回首页", fr: "Retour à l'accueil", vi: "Về trang chủ", ja: "ホームに戻る" }),
+
+  // role gate / errors
+  "guard.forbidden.title": tr("ไม่ได้รับอนุญาต", "Access denied", { zh: "无访问权限", fr: "Accès refusé", vi: "Không có quyền truy cập", ja: "アクセスが拒否されました" }),
+  "guard.forbidden.body": tr("บทบาทของคุณคือ {role} ซึ่งไม่สามารถเข้าหน้านี้ได้", "Your role is {role}, which cannot access this page.", { zh: "您的角色是 {role}，无法访问此页面。", fr: "Votre rôle est {role}, qui ne peut pas accéder à cette page.", vi: "Vai trò của bạn là {role}, không thể truy cập trang này.", ja: "ロール {role} ではこのページにアクセスできません。" }),
+  "guard.goHome": tr("กลับหน้าแรก", "Go home", { zh: "返回首页", fr: "Retour", vi: "Trang chủ", ja: "ホームへ" }),
+  "guard.goDashboard": tr("ไป Dashboard", "Go to Dashboard", { zh: "前往仪表板", fr: "Tableau de bord", vi: "Bảng điều khiển", ja: "ダッシュボード" }),
+
+  // loading states
+  "loading.signin": tr("กำลังเข้าสู่ระบบ...", "Signing in...", { zh: "正在登录...", fr: "Connexion...", vi: "Đang đăng nhập...", ja: "ログイン中..." }),
+  "loading.create": tr("กำลังสร้าง...", "Creating...", { zh: "正在创建...", fr: "Création...", vi: "Đang tạo...", ja: "作成中..." }),
+  "loading.save": tr("กำลังบันทึก...", "Saving...", { zh: "正在保存...", fr: "Sauvegarde...", vi: "Đang lưu...", ja: "保存中..." }),
 };
 
 interface I18nCtx {
