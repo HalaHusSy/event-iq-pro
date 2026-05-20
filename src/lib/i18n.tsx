@@ -54,21 +54,39 @@ export const dict: Dict = {
       ja: "来場者に最適なブースを、出展者に最適な顧客を結び付けます。",
     }
   ),
-  "f1.title": tr("จับคู่บูธอัจฉริยะ", "Booth Matching"),
-  "f1.desc": tr("เล่า pain ของคุณ AI หาบูธที่ตรงที่สุดให้ทันที", "Describe your pain, get the perfect booth match instantly."),
-  "f2.title": tr("ถามอะไรก็ได้เกี่ยวกับงาน", "Event FAQ"),
-  "f2.desc": tr("ตารางเซสชั่น แผนที่ ร้านอาหาร ตอบครบจบในแชท", "Schedules, maps, food courts — answered in chat."),
+  "f1.title": tr("จับคู่บูธอัจฉริยะ", "Booth Matching", { zh: "智能展位匹配", fr: "Correspondance de stand", vi: "Ghép gian hàng thông minh", ja: "ブースマッチング" }),
+  "f1.desc": tr(
+    "เล่า pain ของคุณ AI หาบูธที่ตรงที่สุดให้ทันที",
+    "Describe your pain, get the perfect booth match instantly.",
+    {
+      zh: "描述您的需求，AI 立即为您匹配最合适的展位。",
+      fr: "Décrivez votre besoin, obtenez le stand idéal instantanément.",
+      vi: "Mô tả nhu cầu của bạn, AI tìm ngay gian hàng phù hợp nhất.",
+      ja: "あなたの課題を伝えれば、最適なブースが瞬時に見つかります。",
+    }
+  ),
+  "f2.title": tr("ถามอะไรก็ได้เกี่ยวกับงาน", "Event FAQ", { zh: "活动问答", fr: "FAQ de l'événement", vi: "Hỏi đáp sự kiện", ja: "イベントFAQ" }),
+  "f2.desc": tr(
+    "ตารางเซสชั่น แผนที่ ร้านอาหาร ตอบครบจบในแชท",
+    "Schedules, maps, food courts — answered in chat.",
+    {
+      zh: "议程、地图、餐饮 —— 聊天中一站式解答。",
+      fr: "Programmes, plans, restauration — réponses dans le chat.",
+      vi: "Lịch trình, bản đồ, ẩm thực — trả lời ngay trong chat.",
+      ja: "スケジュール、マップ、フードコート — チャットで即回答。",
+    }
+  ),
 
   "how.title": tr("ใช้งานอย่างไร", "How it works", { zh: "如何使用", fr: "Comment ça marche", vi: "Cách hoạt động", ja: "使い方" }),
-  "how.1": tr("เล่า pain หรือความสนใจของคุณ", "Describe your pain or interest"),
-  "how.2": tr("AI วิเคราะห์และจับคู่ทันที", "AI analyzes and matches instantly"),
-  "how.3": tr("เดินตรงไปยังบูธที่ใช่", "Walk directly to the right booth"),
+  "how.1": tr("เล่า pain หรือความสนใจของคุณ", "Describe your pain or interest", { zh: "描述您的需求或兴趣", fr: "Décrivez votre besoin ou intérêt", vi: "Mô tả nhu cầu hoặc sở thích của bạn", ja: "課題や興味を伝える" }),
+  "how.2": tr("AI วิเคราะห์และจับคู่ทันที", "AI analyzes and matches instantly", { zh: "AI 立即分析并匹配", fr: "L'IA analyse et associe instantanément", vi: "AI phân tích và ghép ngay lập tức", ja: "AIが瞬時に分析・マッチング" }),
+  "how.3": tr("เดินตรงไปยังบูธที่ใช่", "Walk directly to the right booth", { zh: "直接前往合适的展位", fr: "Allez directement au bon stand", vi: "Đi thẳng đến gian hàng phù hợp", ja: "適切なブースへ直行" }),
 
-  "trust": tr("ขับเคลื่อนโดย Botnoi AI", "Powered by Botnoi AI"),
+  "trust": tr("ขับเคลื่อนโดย Botnoi AI", "Powered by Botnoi AI", { zh: "由 Botnoi AI 驱动", fr: "Propulsé par Botnoi AI", vi: "Vận hành bởi Botnoi AI", ja: "Botnoi AI による提供" }),
 
   // visitor tabs
-  "tab.find": tr("หาบูธ", "Find Booth"),
-  "tab.ask": tr("ถามเรื่องงาน", "Ask Event"),
+  "tab.find": tr("หาบูธ", "Find Booth", { zh: "找展位", fr: "Trouver un stand", vi: "Tìm gian hàng", ja: "ブースを探す" }),
+  "tab.ask": tr("ถามเรื่องงาน", "Ask Event", { zh: "活动咨询", fr: "Questions événement", vi: "Hỏi về sự kiện", ja: "イベントに質問" }),
 
   // visitor event banner
   "visitor.currentEvent": tr("กำลังอยู่ในงาน", "Current event", { zh: "当前活动", fr: "Événement actuel", vi: "Sự kiện hiện tại", ja: "現在のイベント" }),
@@ -85,18 +103,30 @@ export const dict: Dict = {
 
   // platform page
   "platform.title": tr("แพลตฟอร์ม EventIQ", "EventIQ Platform", { zh: "EventIQ 平台", fr: "Plateforme EventIQ", vi: "Nền tảng EventIQ", ja: "EventIQ プラットフォーム" }),
-  "platform.sub": tr("Root account · จัดการทุก event ในที่เดียว", "Root account · Manage every event in one place"),
-  "platform.tab.events": tr("จัดการ Event", "Events"),
-  "platform.tab.admins": tr("Event Admin", "Event Admins"),
-  "platform.tab.exhibitors": tr("Exhibitors", "Exhibitors"),
+  "platform.sub": tr("Root account · จัดการทุก event ในที่เดียว", "Root account · Manage every event in one place", { zh: "Root 账户 · 在一处管理所有活动", fr: "Compte Root · Gérez tous les événements", vi: "Tài khoản Root · Quản lý mọi sự kiện", ja: "Root アカウント · すべてのイベントを一元管理" }),
+  "platform.tab.events": tr("จัดการ Event", "Events", { zh: "活动", fr: "Événements", vi: "Sự kiện", ja: "イベント" }),
+  "platform.tab.admins": tr("Event Admin", "Event Admins", { zh: "活动管理员", fr: "Admins événement", vi: "Quản trị sự kiện", ja: "イベント管理者" }),
+  "platform.tab.exhibitors": tr("Exhibitors", "Exhibitors", { zh: "参展商", fr: "Exposants", vi: "Nhà triển lãm", ja: "出展者" }),
   "platform.tab.bot": tr("Bot & LINE OA", "Bot & LINE OA"),
-  "platform.create": tr("สร้าง Event ใหม่", "Create new event"),
-  "platform.assignAdmin": tr("กำหนด Admin", "Assign admin"),
-  "platform.addExhibitor": tr("เพิ่ม Exhibitor", "Add exhibitor"),
-  "platform.connectBot": tr("เชื่อมต่อ Bot", "Connect bot"),
+  "platform.create": tr("สร้าง Event ใหม่", "Create event", { zh: "创建活动", fr: "Créer un événement", vi: "Tạo sự kiện", ja: "イベント作成" }),
+  "platform.edit": tr("แก้ไข", "Edit", { zh: "编辑", fr: "Modifier", vi: "Sửa", ja: "編集" }),
+  "platform.delete": tr("ลบ", "Delete", { zh: "删除", fr: "Supprimer", vi: "Xóa", ja: "削除" }),
+  "platform.confirmDelete": tr("ยืนยันลบ event นี้?", "Delete this event?", { zh: "确认删除该活动？", fr: "Supprimer cet événement ?", vi: "Xóa sự kiện này?", ja: "このイベントを削除しますか？" }),
+  "platform.deleteWarning": tr("การลบจะทำให้ exhibitor และข้อมูลทั้งหมดของ event นี้หายไป", "Deleting will remove all exhibitors and data of this event.", { zh: "删除将清除该活动的所有参展商和数据。", fr: "La suppression effacera tous les exposants et données de cet événement.", vi: "Xóa sẽ loại bỏ toàn bộ nhà triển lãm và dữ liệu của sự kiện.", ja: "削除するとこのイベントの出展者とデータがすべて消えます。" }),
+  "platform.cancel": tr("ยกเลิก", "Cancel", { zh: "取消", fr: "Annuler", vi: "Hủy", ja: "キャンセル" }),
+  "platform.save": tr("บันทึก", "Save", { zh: "保存", fr: "Enregistrer", vi: "Lưu", ja: "保存" }),
+  "platform.assignAdmin": tr("กำหนด Admin", "Assign admin", { zh: "指派管理员", fr: "Assigner un admin", vi: "Phân quyền admin", ja: "管理者を割り当てる" }),
+  "platform.addExhibitor": tr("เพิ่ม Exhibitor", "Add exhibitor", { zh: "添加参展商", fr: "Ajouter un exposant", vi: "Thêm nhà triển lãm", ja: "出展者を追加" }),
+  "platform.connectBot": tr("เชื่อมต่อ Bot", "Connect bot", { zh: "连接 Bot", fr: "Connecter le bot", vi: "Kết nối Bot", ja: "Botを接続" }),
   "platform.linkLine": tr("Link LINE OA", "Link LINE OA"),
-  "platform.connected": tr("เชื่อมต่อแล้ว", "Connected"),
-  "platform.notConnected": tr("ยังไม่เชื่อมต่อ", "Not connected"),
+  "platform.connected": tr("เชื่อมต่อแล้ว", "Connected", { zh: "已连接", fr: "Connecté", vi: "Đã kết nối", ja: "接続済み" }),
+  "platform.notConnected": tr("ยังไม่เชื่อมต่อ", "Not connected", { zh: "未连接", fr: "Non connecté", vi: "Chưa kết nối", ja: "未接続" }),
+  "platform.stats.events": tr("Event ทั้งหมด", "Total events", { zh: "活动总数", fr: "Événements", vi: "Tổng sự kiện", ja: "イベント合計" }),
+  "platform.stats.live": tr("กำลังจัด", "Live now", { zh: "进行中", fr: "En direct", vi: "Đang diễn ra", ja: "開催中" }),
+  "platform.stats.exhibitors": tr("Exhibitors ทั้งหมด", "Total exhibitors", { zh: "参展商总数", fr: "Exposants", vi: "Tổng nhà triển lãm", ja: "出展者合計" }),
+  "platform.stats.admins": tr("Admins ทั้งหมด", "Total admins", { zh: "管理员总数", fr: "Admins", vi: "Tổng admin", ja: "管理者合計" }),
+  "platform.chart.title": tr("Exhibitors ในแต่ละ Event", "Exhibitors per event", { zh: "各活动参展商数", fr: "Exposants par événement", vi: "Nhà triển lãm theo sự kiện", ja: "イベント別出展者数" }),
+  "platform.empty.events": tr("ยังไม่มี event ในระบบ", "No events yet", { zh: "暂无活动", fr: "Aucun événement", vi: "Chưa có sự kiện", ja: "イベントがありません" }),
 };
 
 interface I18nCtx {
