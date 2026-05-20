@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AppShell from "@/components/AppShell";
+import ParticleBackground from "@/components/ParticleBackground";
 import { useI18n } from "@/lib/i18n";
 
 const features = [
@@ -33,17 +34,16 @@ const features = [
   },
 ];
 
-const trustedBrands = ["Botnoi", "AIS", "SCG", "Krungsri", "Bangkok Bank", "True Corp"];
-
 const Index = () => {
   const { t } = useI18n();
   return (
     <AppShell>
-      {/* Hero */}
-      <section className="relative overflow-hidden hero-bg">
-        <div className="container py-20 md:py-28 relative">
+      {/* Hero with particle background */}
+      <section className="relative overflow-hidden min-h-[600px] md:min-h-[700px]">
+        <ParticleBackground density={140} />
+        <div className="container py-24 md:py-32 relative z-10">
           <div className="max-w-3xl mx-auto text-center animate-fade-up">
-            <Badge variant="outline" className="mb-6 gap-1.5 py-1.5 px-3 glass">
+            <Badge variant="outline" className="mb-6 gap-1.5 py-1.5 px-3 backdrop-blur-sm bg-background/40 border-border/60">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
               <span className="font-mono text-xs">{t("trust")}</span>
             </Badge>
@@ -63,32 +63,11 @@ const Index = () => {
                   {t("hero.cta.visitor")} <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="outline" className="backdrop-blur-sm bg-background/60">
                 <Link to="/exhibitor">{t("hero.cta.exhibitor")}</Link>
               </Button>
             </div>
-
-            {/* Trust row */}
-            <div className="mt-12 flex flex-col items-center gap-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
-                Trusted by leading Thai brands
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 opacity-60">
-                {trustedBrands.map((b) => (
-                  <span key={b} className="text-sm font-bold tracking-wide">
-                    {b}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
-
-          {/* floating decoration */}
-          <div className="absolute top-20 -right-10 w-72 h-72 bg-gradient-primary opacity-20 blur-3xl rounded-full animate-float" />
-          <div
-            className="absolute bottom-10 -left-10 w-72 h-72 bg-gradient-accent opacity-20 blur-3xl rounded-full animate-float"
-            style={{ animationDelay: "2s" }}
-          />
         </div>
       </section>
 
