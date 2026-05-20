@@ -22,6 +22,7 @@ import OrganizerDashboard from "./pages/dashboard/OrganizerDashboard.tsx";
 import ExhibitorDashboard from "./pages/dashboard/ExhibitorDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
+import { VersionChecker } from "./components/VersionChecker";
 
 // Sensible defaults so a single hung request doesn't freeze the UI:
 // - retry once only (default is 3 with exponential backoff = ~30s before giving up)
@@ -117,6 +118,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <BotnoiWidget />
+              <VersionChecker />
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
