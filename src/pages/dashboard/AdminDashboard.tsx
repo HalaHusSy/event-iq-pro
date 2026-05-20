@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -296,6 +297,9 @@ function Organizers() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>สร้าง Organizer ใหม่</DialogTitle>
+                <DialogDescription className="sr-only">
+                  ฟอร์มสร้างบัญชี organizer ใหม่ในระบบ
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
@@ -684,6 +688,9 @@ function AllExhibitors() {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>เพิ่ม Exhibitor ใหม่ (UC-A03)</DialogTitle>
+                <DialogDescription className="sr-only">
+                  ฟอร์มเพิ่ม exhibitor พร้อม assign ให้ event และ user
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
@@ -838,6 +845,9 @@ function InviteUserButton() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>เชิญผู้ใช้ใหม่ทาง Email</DialogTitle>
+          <DialogDescription className="sr-only">
+            ส่งคำเชิญทาง email พร้อมกำหนด role ของผู้ใช้ใหม่
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div>
