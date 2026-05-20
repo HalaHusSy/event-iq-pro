@@ -19,4 +19,8 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
+  define: {
+    // Baked-in build timestamp — used by VersionChecker to detect new deploys
+    __BUILD_TIME__: JSON.stringify(Date.now()),
+  },
 }));

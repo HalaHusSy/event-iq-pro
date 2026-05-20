@@ -1,0 +1,15 @@
+# Netlify-style cache headers (Lovable may honor these)
+# index.html — always re-validate (must get latest pointer to hashed assets)
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# Hashed JS/CSS — safe to cache forever (filename changes on every build)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
