@@ -693,11 +693,12 @@ function EventFormDialog({
             {t("platform.cancel")}
           </Button>
           <Button onClick={submit} disabled={submitting}>
-            {submitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              t("platform.save")
-            )}
+            {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {submitting
+              ? mode === "create"
+                ? t("loading.create")
+                : t("loading.save")
+              : t("platform.save")}
           </Button>
         </DialogFooter>
       </DialogContent>
