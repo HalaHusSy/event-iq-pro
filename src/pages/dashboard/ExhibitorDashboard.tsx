@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -506,6 +507,9 @@ function Leads({ exhibitorId }: { exhibitorId: string }) {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>เพิ่ม Lead ใหม่</DialogTitle>
+              <DialogDescription className="sr-only">
+                บันทึก lead ที่เก็บมาจากผู้เยี่ยมชม booth
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div>

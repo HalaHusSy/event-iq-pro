@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -269,6 +270,9 @@ function MyEvents({ organizerId }: { organizerId: string }) {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>สร้าง Event ใหม่</DialogTitle>
+                <DialogDescription className="sr-only">
+                  ฟอร์มสำหรับสร้าง event ใหม่ในระบบ
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
@@ -560,6 +564,9 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>เพิ่ม Exhibitor ใหม่</DialogTitle>
+                <DialogDescription className="sr-only">
+                  ฟอร์มเพิ่ม exhibitor ใหม่ให้กับ event ที่เลือก
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
