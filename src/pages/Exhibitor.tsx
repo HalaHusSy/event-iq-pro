@@ -100,15 +100,17 @@ export default function Exhibitor() {
   }, [booth?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = useMutation({
-    mutationFn: () =>
-      updateExhibitor(booth!.id, {
+    mutationFn: async () => {
+      if (!booth) throw new Error("Booth not loaded yet — please retry");
+      return updateExhibitor(booth.id, {
         company_name: form.company_name,
         website: form.website || null,
         description: form.description || null,
         product_info: form.product_info || null,
         promotion: form.promotion || null,
         tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
-      }),
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my_exhibitors"] });
       qc.invalidateQueries({ queryKey: ["exhibitors"] });
@@ -362,7 +364,7 @@ export default function Exhibitor() {
           ) : (
             <Button
               onClick={() => save.mutate()}
-              disabled={save.isPending}
+              disabled={save.isPending || !booth || !form.company_name.trim()}
               className="bg-gradient-primary"
             >
               {save.isPending ? (
