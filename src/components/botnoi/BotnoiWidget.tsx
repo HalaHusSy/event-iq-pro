@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 declare global {
   interface Window {
@@ -15,6 +16,31 @@ interface BotnoiWidgetProps {
   loggedInGreeting?: string;
   defaultOpen?: boolean;
   botLogo?: string;
+}
+
+// Paths where the widget is NOT relevant — avoid loading the heavy SDK there
+// (Botnoi server occasionally returns 504 which hangs the page for ~30s)
+const EXCLUDED_PATHS = [
+  '/login',
+  '/signup',
+  '/platform',
+  '/admin',
+  '/root',
+  '/dashboard',
+  '/organizer',
+];
+
+function hideWidget() {
+  const root = document.getElementById('bn-root');
+  const chat = document.querySelector<HTMLElement>('.bn-customerchat');
+  if (root) root.style.display = 'none';
+  if (chat) chat.style.display = 'none';
+}
+function showWidget() {
+  const root = document.getElementById('bn-root');
+  const chat = document.querySelector<HTMLElement>('.bn-customerchat');
+  if (root) root.style.display = '';
+  if (chat) chat.style.display = '';
 }
 
 /**
@@ -38,7 +64,19 @@ export function BotnoiWidget({
   defaultOpen = false,
   botLogo,
 }: BotnoiWidgetProps = {}) {
+  const location = useLocation();
+  const isExcluded = EXCLUDED_PATHS.some((p) => location.pathname.startsWith(p));
+
   useEffect(() => {
+    // Hide widget on excluded routes (login, dashboards) so the Botnoi SDK
+    // doesn't try to load there. Don't unmount — keeps SDK warm for fast
+    // re-show on visitor pages.
+    if (isExcluded) {
+      hideWidget();
+      return;
+    }
+    showWidget();
+
     // 1) ensure #bn-root exists
     if (!document.getElementById('bn-root')) {
       const root = document.createElement('div');
@@ -68,6 +106,7 @@ export function BotnoiWidget({
       js.id = 'bn-jssdk';
       js.src = 'https://console.botnoi.ai/customerchat/index.js';
       js.async = true;
+      js.onerror = () => console.warn('[Botnoi] SDK failed to load — widget disabled');
       js.onload = () => {
         try {
           window.BN?.init({ version: '1.0' });
@@ -77,12 +116,13 @@ export function BotnoiWidget({
       };
       document.body.appendChild(js);
     } else if (window.BN) {
-      // re-init if SDK already loaded (e.g. SPA navigation)
       try {
         window.BN.init({ version: '1.0' });
-      } catch {}
+      } catch {
+        /* ignore re-init errors */
+      }
     }
-  }, [botId, botName, themeColor, locale, greetingMessage, loggedInGreeting, defaultOpen, botLogo]);
+  }, [isExcluded, botId, botName, themeColor, locale, greetingMessage, loggedInGreeting, defaultOpen, botLogo]);
 
   // The widget renders itself into #bn-root / .bn-customerchat outside React tree
   return null;
