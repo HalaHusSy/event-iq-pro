@@ -149,13 +149,13 @@ const Index = () => {
       <section className="container py-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { v: "15s", l: "Avg. match time", icon: Zap, gradient: "from-indigo-500 to-violet-500" },
-            { v: "92%", l: "Match precision", icon: Target, gradient: "from-rose-500 to-amber-500" },
-            { v: "20+", l: "Exhibitors", icon: Calendar, gradient: "from-emerald-500 to-teal-500" },
-            { v: "8", l: "Live sessions", icon: TrendingUp, gradient: "from-blue-500 to-cyan-500" },
+            { v: "15s", k: "stats.matchTime", icon: Zap, gradient: "from-indigo-500 to-violet-500" },
+            { v: "92%", k: "stats.precision", icon: Target, gradient: "from-rose-500 to-amber-500" },
+            { v: "20+", k: "stats.exhibitors", icon: Calendar, gradient: "from-emerald-500 to-teal-500" },
+            { v: "8", k: "stats.liveSessions", icon: TrendingUp, gradient: "from-blue-500 to-cyan-500" },
           ].map((s) => (
             <Card
-              key={s.l}
+              key={s.k}
               className="p-6 glass hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300"
             >
               <div
@@ -165,7 +165,7 @@ const Index = () => {
               </div>
               <div className="font-mono text-3xl md:text-4xl font-bold gradient-text">{s.v}</div>
               <div className="text-xs text-muted-foreground mt-2 uppercase tracking-wider font-medium">
-                {s.l}
+                {t(s.k)}
               </div>
             </Card>
           ))}
@@ -182,19 +182,19 @@ const Index = () => {
               <Shield className="h-6 w-6" />
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight max-w-2xl mx-auto leading-tight">
-              พร้อมเปลี่ยนงานแสดงสินค้าของคุณ<br className="hidden md:block" />ให้สมาร์ตขึ้นแล้วหรือยัง?
+              {t("cta.headline")}
             </h2>
             <p className="mt-4 text-white/80 max-w-xl mx-auto">
-              เริ่มใช้ EventIQ ฟรี — ไม่ต้องติดตั้ง ไม่ต้องอบรม
+              {t("cta.sub")}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild size="lg" variant="secondary" className="shadow-lg">
                 <Link to="/events">
-                  ดูงานทั้งหมด <ArrowRight className="ml-1 h-4 w-4" />
+                  {t("nav.events")} <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 border-white/30 text-white">
-                <Link to="/exhibitor">ลงทะเบียนเป็น Exhibitor</Link>
+                <Link to="/exhibitor">{t("cta.register")}</Link>
               </Button>
             </div>
           </div>

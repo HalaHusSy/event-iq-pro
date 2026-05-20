@@ -27,6 +27,10 @@ export const dict: Dict = {
   "nav.exhibitor": tr("ผู้ออกบูธ", "Exhibitor", { zh: "参展商", fr: "Exposant", vi: "Nhà triển lãm", ja: "出展者" }),
   "nav.speaker": tr("ผู้บรรยาย", "Speaker", { zh: "演讲者", fr: "Intervenant", vi: "Diễn giả", ja: "スピーカー" }),
   "nav.admin": tr("ผู้ดูแล", "Admin", { zh: "管理", fr: "Admin", vi: "Quản trị", ja: "管理" }),
+  "nav.signin": tr("เข้าสู่ระบบ", "Sign in", { zh: "登录", fr: "Connexion", vi: "Đăng nhập", ja: "ログイン" }),
+  "nav.signout": tr("ออกจากระบบ", "Sign out", { zh: "退出登录", fr: "Déconnexion", vi: "Đăng xuất", ja: "ログアウト" }),
+  "nav.dashboard": tr("ไปที่ Dashboard", "Go to dashboard", { zh: "前往仪表板", fr: "Aller au tableau de bord", vi: "Tới bảng điều khiển", ja: "ダッシュボードへ" }),
+  "nav.menu": tr("เมนู", "Menu", { zh: "菜单", fr: "Menu", vi: "Menu", ja: "メニュー" }),
 
   // hero
   "hero.title": tr(
@@ -127,6 +131,25 @@ export const dict: Dict = {
   "platform.stats.admins": tr("Admins ทั้งหมด", "Total admins", { zh: "管理员总数", fr: "Admins", vi: "Tổng admin", ja: "管理者合計" }),
   "platform.chart.title": tr("Exhibitors ในแต่ละ Event", "Exhibitors per event", { zh: "各活动参展商数", fr: "Exposants par événement", vi: "Nhà triển lãm theo sự kiện", ja: "イベント別出展者数" }),
   "platform.empty.events": tr("ยังไม่มี event ในระบบ", "No events yet", { zh: "暂无活动", fr: "Aucun événement", vi: "Chưa có sự kiện", ja: "イベントがありません" }),
+
+  // home stats
+  "stats.matchTime": tr("เวลาจับคู่เฉลี่ย", "Avg. match time", { zh: "平均匹配时间", fr: "Temps moyen", vi: "Thời gian khớp TB", ja: "平均マッチ時間" }),
+  "stats.precision": tr("ความแม่นยำ", "Match precision", { zh: "匹配精度", fr: "Précision", vi: "Độ chính xác", ja: "マッチ精度" }),
+  "stats.exhibitors": tr("ผู้ออกบูธ", "Exhibitors", { zh: "参展商", fr: "Exposants", vi: "Nhà triển lãm", ja: "出展者" }),
+  "stats.liveSessions": tr("เซสชั่นสด", "Live sessions", { zh: "现场会议", fr: "Sessions en direct", vi: "Phiên trực tiếp", ja: "ライブセッション" }),
+
+  // CTA section (bottom of home)
+  "cta.headline": tr(
+    "พร้อมเปลี่ยนงานแสดงสินค้าของคุณให้สมาร์ตขึ้นแล้วหรือยัง?",
+    "Ready to make your exhibition smarter?",
+    { zh: "准备好让您的展会更智能了吗？", fr: "Prêt à rendre votre salon plus intelligent ?", vi: "Sẵn sàng nâng cấp triển lãm của bạn?", ja: "展示会をスマートに進化させませんか？" }
+  ),
+  "cta.sub": tr("เริ่มใช้ EventIQ ฟรี — ไม่ต้องใช้บัตรเครดิต", "Start with EventIQ for free — no credit card needed", { zh: "免费开始使用 EventIQ — 无需信用卡", fr: "Démarrez gratuitement — sans carte de crédit", vi: "Bắt đầu miễn phí — không cần thẻ", ja: "無料で開始 — クレジットカード不要" }),
+  "cta.demo": tr("ดูเดโม", "Watch demo", { zh: "观看演示", fr: "Voir la démo", vi: "Xem demo", ja: "デモを見る" }),
+  "cta.register": tr("ลงทะเบียน Exhibitor", "Register as Exhibitor", { zh: "注册参展商", fr: "S'inscrire comme exposant", vi: "Đăng ký nhà triển lãm", ja: "出展者登録" }),
+
+  // common
+  "common.back": tr("กลับหน้าหลัก", "Back to home", { zh: "返回首页", fr: "Retour à l'accueil", vi: "Về trang chủ", ja: "ホームに戻る" }),
 };
 
 interface I18nCtx {

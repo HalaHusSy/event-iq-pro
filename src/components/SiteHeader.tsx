@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LogIn, LogOut, Moon, Sparkles, Sun, User } from "lucide-react";
+import { LogIn, LogOut, Menu, Moon, Sparkles, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,6 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
@@ -38,6 +46,7 @@ export default function SiteHeader() {
   const { t } = useI18n();
   const { session, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const baseLinks = [
     { to: "/", label: t("nav.home") },
@@ -67,13 +76,15 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 glass border-b">
-      <div className="container flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg">
+      <div className="container flex h-16 items-center justify-between gap-2">
+        <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
             <Sparkles className="h-4 w-4" />
           </div>
           <span>EventIQ</span>
         </Link>
+
+        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1 overflow-x-auto">
           {links.map((l) => (
             <NavLink
@@ -92,17 +103,19 @@ export default function SiteHeader() {
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-1">
+
+        <div className="flex items-center gap-1 shrink-0">
           <LanguageSwitcher />
           <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
             {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
           </Button>
+
           {session && profile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Button variant="ghost" size="sm" className="gap-2 px-2">
                   <User className="h-4 w-4" />
-                  <Badge variant="outline" className={`text-xs ${ROLE_COLOR[profile.role] ?? ""}`}>
+                  <Badge variant="outline" className={`text-xs hidden sm:inline-flex ${ROLE_COLOR[profile.role] ?? ""}`}>
                     {profile.role}
                   </Badge>
                 </Button>
@@ -114,7 +127,7 @@ export default function SiteHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate(ROLE_HOME[profile.role] ?? "/")}>
-                  ไปที่ Dashboard
+                  {t("nav.dashboard")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -123,17 +136,54 @@ export default function SiteHeader() {
                     navigate("/", { replace: true });
                   }}
                 >
-                  <LogOut className="h-4 w-4 mr-2" /> ออกจากระบบ
+                  <LogOut className="h-4 w-4 mr-2" /> {t("nav.signout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="px-2 sm:px-3">
               <Link to="/login">
-                <LogIn className="h-4 w-4 mr-1" /> เข้าสู่ระบบ
+                <LogIn className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">{t("nav.signin")}</span>
               </Link>
             </Button>
           )}
+
+          {/* Mobile hamburger */}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("nav.menu")}>
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  EventIQ
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-1">
+                {links.map((l) => (
+                  <NavLink
+                    key={l.to}
+                    to={l.to}
+                    end={l.to === "/"}
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-secondary text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`
+                    }
+                  >
+                    {l.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

@@ -383,13 +383,22 @@ function EventsManager({
           }
           submitting={createMut.isPending}
           trigger={
-            <Button size="sm">
+            <Button
+              size="sm"
+              disabled={organizers.length === 0}
+              title={organizers.length === 0 ? "Create an organizer first" : undefined}
+            >
               <Plus className="h-4 w-4 mr-1" />
               {t("platform.create")}
             </Button>
           }
         />
       </div>
+      {organizers.length === 0 && (
+        <div className="px-5 py-2 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs border-b border-amber-500/20">
+          ⚠ No organizers in system — create one via Root Dashboard before adding events
+        </div>
+      )}
 
       {loading ? (
         <div className="p-12 flex items-center justify-center text-muted-foreground">
