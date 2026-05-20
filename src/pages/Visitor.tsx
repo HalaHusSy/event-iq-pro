@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Target, MessageSquare, Mic, NotebookPen, Send, Sparkles, Mic2, Bookmark, MapPin, Square, Play, Share2, Check, FileText, ChevronDown, Brain, X, GitCompare, Filter, Info, Mic as MicIcon, Cpu, FileText as FileIcon, Shield, Clock, Globe, RotateCcw, Database } from "lucide-react";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Target, MessageSquare, Send, Sparkles, Mic2, Bookmark, MapPin, ChevronDown, Brain, X, GitCompare, Filter, Calendar, Loader2 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,46 +9,148 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/lib/i18n";
-import { Match, sampleMatches, faqs, sessions } from "@/lib/mock";
+import { Match, sampleMatches, faqs } from "@/lib/mock";
+import { PLATFORM_EVENTS } from "@/lib/mock/events";
+import { listEvents } from "@/lib/data/queries";
 import { toast } from "sonner";
-import MemoryTab from "@/components/visitor/MemoryTab";
-import SessionsTab from "@/components/visitor/SessionsTab";
+
+// Cover emoji picker for DB events (mirrors logic in Events.tsx)
+function pickCover(name: string): string {
+  const n = name.toLowerCase();
+  if (/(tech|ai|software|saas|cloud|data)/.test(n)) return "🚀";
+  if (/(food|cook|coffee|restaurant|culinary)/.test(n)) return "🍜";
+  if (/(money|finance|bank|fintech|invest)/.test(n)) return "💰";
+  if (/(health|medical|hospital|wellness|pharma)/.test(n)) return "🏥";
+  if (/(green|eco|sustain|energy|environment)/.test(n)) return "🌱";
+  if (/(education|edu|school|learn|train)/.test(n)) return "🎓";
+  return "🎪";
+}
 
 const tabs = [
   { id: "find", icon: Target, key: "tab.find" },
   { id: "ask", icon: MessageSquare, key: "tab.ask" },
-  { id: "memory", icon: Mic, key: "tab.memory" },
-  { id: "sessions", icon: NotebookPen, key: "tab.sessions" },
 ];
+
+type BannerEvent = {
+  cover: string;
+  name: string;
+  status: "live" | "upcoming" | "past";
+  startDate: string;
+  endDate: string;
+  venue: string;
+};
+
+function EventBanner({ event }: { event: BannerEvent }) {
+  const { t, lang } = useI18n();
+  const fmt = (iso: string) =>
+    iso
+      ? new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, { day: "numeric", month: "short", year: "numeric" })
+      : "—";
+  const statusColor =
+    event.status === "live" ? "bg-emerald-500" : event.status === "upcoming" ? "bg-amber-500" : "bg-muted-foreground";
+  const statusLabel =
+    event.status === "live" ? t("events.live") : event.status === "upcoming" ? t("events.upcoming") : t("events.past");
+
+  return (
+    <Card className="p-4 glass mb-6 flex items-center gap-4 border-primary/30">
+      <div className="text-4xl shrink-0">{event.cover}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider">{t("visitor.currentEvent")}</Badge>
+          <Badge className={`${statusColor} text-white border-0 gap-1`}>
+            {event.status === "live" && <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
+            {statusLabel}
+          </Badge>
+        </div>
+        <h2 className="font-semibold text-lg leading-tight">{event.name}</h2>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1.5">
+          <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{fmt(event.startDate)} – {fmt(event.endDate)}</span>
+          <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{event.venue}</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export default function VisitorPortal() {
   const [params, setParams] = useSearchParams();
   const active = params.get("tab") || "find";
+  const eventSlug = params.get("event");
   const { t } = useI18n();
+
+  // Resolve event from either mock slug OR DB id
+  const { data: dbEvents = [], isLoading: dbLoading } = useQuery({
+    queryKey: ["events"],
+    queryFn: () => listEvents(),
+  });
+
+  const mockEvent = eventSlug ? PLATFORM_EVENTS.find((e) => e.slug === eventSlug) : null;
+  const dbEvent = eventSlug ? dbEvents.find((e) => e.id === eventSlug) : null;
+
+  const banner: BannerEvent | null = mockEvent
+    ? {
+        cover: mockEvent.cover,
+        name: mockEvent.name,
+        status: mockEvent.status,
+        startDate: mockEvent.startDate,
+        endDate: mockEvent.endDate,
+        venue: mockEvent.venue,
+      }
+    : dbEvent
+    ? {
+        cover: pickCover(dbEvent.name),
+        name: dbEvent.name,
+        status: (dbEvent.status as BannerEvent["status"]) ?? "upcoming",
+        startDate: dbEvent.start_date ?? "",
+        endDate: dbEvent.end_date ?? "",
+        venue: dbEvent.location ?? "",
+      }
+    : null;
+
+  // STRICT: ต้องเลือก event ก่อนใช้งาน Visitor portal — wait for DB before redirecting
+  if (dbLoading) {
+    return (
+      <AppShell>
+        <div className="container py-24 grid place-items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AppShell>
+    );
+  }
+  if (!banner) {
+    return <Navigate to="/events" state={{ requireEvent: true }} replace />;
+  }
+
+  const setTab = (id: string) => {
+    const next: Record<string, string> = { tab: id };
+    if (eventSlug) next.event = eventSlug;
+    setParams(next);
+  };
 
   return (
     <AppShell>
       <div className="container py-8">
-        <div className="grid lg:grid-cols-[240px_1fr] gap-6">
+        {banner && <EventBanner event={banner} />}
+        <div className="grid lg:grid-cols-[220px_1fr] gap-6">
           <aside className="lg:sticky lg:top-20 lg:self-start">
-            <Card className="p-2 glass">
+            <Card className="p-2">
+              <div className="px-2 py-2 text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                Visitor Tools
+              </div>
               <nav className="flex lg:flex-col gap-1 overflow-x-auto">
                 {tabs.map(tab => (
                   <button
                     key={tab.id}
-                    onClick={() => setParams({ tab: tab.id })}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium whitespace-nowrap transition-all ${
+                    onClick={() => setTab(tab.id)}
+                    className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium whitespace-nowrap transition-all text-left ${
                       active === tab.id ? "bg-gradient-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   >
-                    <tab.icon className="h-4 w-4" />
+                    <tab.icon className={`h-4 w-4 ${active === tab.id ? "" : "opacity-70 group-hover:opacity-100"}`} />
                     {t(tab.key)}
                   </button>
                 ))}
@@ -57,8 +160,6 @@ export default function VisitorPortal() {
           <section className="min-w-0">
             {active === "find" && <FindBooth />}
             {active === "ask" && <AskEvent />}
-            {active === "memory" && <MemoryTab />}
-            {active === "sessions" && <SessionsTab />}
           </section>
         </div>
       </div>
@@ -435,373 +536,6 @@ function AskEvent() {
           </div>
         </div>
       </Card>
-    </div>
-  );
-}
-
-function EventMemory() {
-  const { lang, t } = useI18n();
-  const [showConsent, setShowConsent] = useState(false);
-  const [c1, setC1] = useState(false); const [c2, setC2] = useState(false); const [c3, setC3] = useState(false);
-  const [signed, setSigned] = useState(false);
-  const [phase, setPhase] = useState<"idle"|"recording"|"processing"|"done">("idle");
-  const [seconds, setSeconds] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawing = useRef(false);
-
-  useEffect(() => {
-    if (phase !== "recording") return;
-    const i = setInterval(() => setSeconds(s => s+1), 1000);
-    return () => clearInterval(i);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "processing") return;
-    setProgress(0);
-    const i = setInterval(() => setProgress(p => {
-      if (p >= 100) { clearInterval(i); setPhase("done"); return 100; }
-      return p + 8;
-    }), 300);
-    return () => clearInterval(i);
-  }, [phase]);
-
-  const startSign = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    drawing.current = true; const ctx = canvasRef.current!.getContext("2d")!;
-    const r = canvasRef.current!.getBoundingClientRect();
-    ctx.beginPath(); ctx.moveTo(e.clientX - r.left, e.clientY - r.top);
-  };
-  const moveSign = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!drawing.current) return;
-    const ctx = canvasRef.current!.getContext("2d")!;
-    const r = canvasRef.current!.getBoundingClientRect();
-    ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = "hsl(var(--foreground))";
-    ctx.lineTo(e.clientX - r.left, e.clientY - r.top); ctx.stroke(); setSigned(true);
-  };
-  const clearSign = () => { const ctx = canvasRef.current!.getContext("2d")!; ctx.clearRect(0,0,500,150); setSigned(false); };
-
-  const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-  const canStart = c1 && c3 && signed;
-
-  if (phase === "recording") {
-    return (
-      <div className="animate-fade-up text-center py-12">
-        <div className="font-mono text-5xl font-bold gradient-text mb-8">{fmt(seconds)}</div>
-        <div className="flex items-end justify-center gap-1 h-24 mb-8">
-          {Array.from({length: 30}).map((_, i) => (
-            <div key={i} className="w-1.5 bg-gradient-primary rounded-full waveform-bar" style={{height: "60%", animationDelay: `${i * 60}ms`}} />
-          ))}
-        </div>
-        <div className="mx-auto w-fit relative mb-6">
-          <div className="grid h-24 w-24 place-items-center rounded-full bg-destructive text-destructive-foreground animate-pulse-ring">
-            <Mic className="h-10 w-10" />
-          </div>
-        </div>
-        <Button size="lg" variant="destructive" onClick={() => setPhase("processing")}>
-          <Square className="h-4 w-4 mr-2 fill-current" /> {lang === "th" ? "หยุดบันทึก" : "Stop Recording"}
-        </Button>
-      </div>
-    );
-  }
-
-  if (phase === "processing") {
-    const steps = [
-      { label: lang === "th" ? "แปลงเสียงเป็นข้อความ" : "Transcribing", at: 33 },
-      { label: lang === "th" ? "แยกเสียงผู้พูด" : "Diarizing", at: 66 },
-      { label: lang === "th" ? "สร้างบทความ" : "Generating article", at: 100 },
-    ];
-    return (
-      <div className="animate-fade-up max-w-md mx-auto py-16 text-center">
-        <h2 className="text-xl font-bold mb-6">{lang === "th" ? "กำลังประมวลผล..." : "Processing..."}</h2>
-        <Progress value={progress} className="mb-6" />
-        <div className="space-y-2 text-sm">
-          {steps.map(s => (
-            <div key={s.label} className="flex items-center justify-between">
-              <span className={progress >= s.at - 33 ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
-              {progress >= s.at ? <Check className="h-4 w-4 text-success" /> : <span className="h-4 w-4 rounded-full border-2 border-muted animate-spin border-t-primary" />}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === "done") {
-    return (
-      <div className="animate-fade-up space-y-5">
-        <Card className="p-6 glass">
-          <Badge className="bg-gradient-accent text-accent-foreground mb-3">PUBLIC ARTICLE</Badge>
-          <h1 className="text-2xl font-bold">{lang === "th" ? "Voice AI ลดต้นทุน Call Center 40% — บทเรียนจาก Botnoi" : "Voice AI cuts call center cost 40% — Lessons from Botnoi"}</h1>
-          <p className="text-xs font-mono text-muted-foreground mt-1">Botnoi Group · Hall A — Booth 12 · {fmt(seconds)} recording</p>
-          <div className="mt-6 space-y-4">
-            <div>
-              <h3 className="font-semibold text-sm mb-2 uppercase tracking-wider text-muted-foreground">Summary</h3>
-              <ul className="space-y-1.5 text-sm list-disc pl-5">
-                <li>{lang === "th" ? "Voice Bot ภาษาไทยลด cost call center ได้ถึง 40%" : "Thai Voice Bot reduces call center cost by 40%"}</li>
-                <li>{lang === "th" ? "Deploy บน on-prem หรือ cloud ได้" : "Can deploy on-prem or cloud"}</li>
-                <li>{lang === "th" ? "รองรับ 12+ ภาษา ใช้เวลา onboarding 2-4 สัปดาห์" : "Supports 12+ languages, 2–4 week onboarding"}</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm mb-2 uppercase tracking-wider text-muted-foreground">Highlights</h3>
-              <blockquote className="border-l-2 border-primary pl-4 italic text-sm">"{lang === "th" ? "ลูกค้าเรารายหนึ่งลดพนักงาน level 1 ลง 60% ภายใน 6 เดือน" : "One client reduced L1 agents by 60% in 6 months."}"</blockquote>
-            </div>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="t"><AccordionTrigger>{lang === "th" ? "ดู Transcript ฉบับเต็ม" : "View full transcript"}</AccordionTrigger>
-                <AccordionContent className="font-mono text-xs space-y-2">
-                  <p><b>[Visitor]</b> สวัสดีครับ อยากทราบเรื่อง voice bot ภาษาไทย</p>
-                  <p><b>[Botnoi]</b> ของเรารองรับภาษาไทยเต็มรูปแบบครับ มี TTS และ STT...</p>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-          <div className="flex gap-2 mt-6 pt-6 border-t">
-            <Button className="bg-gradient-primary"><Share2 className="h-4 w-4 mr-1.5" />{lang === "th" ? "แชร์" : "Share"}</Button>
-            <Button variant="outline">{lang === "th" ? "ดูบทความของฉัน" : "View my memories"}</Button>
-            <Button variant="ghost" onClick={() => { setPhase("idle"); setSeconds(0); }}>{lang === "th" ? "บันทึกใหม่" : "Record new"}</Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="animate-fade-up">
-      <div>
-        <h1 className="text-2xl font-bold">{t("f3.title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("f3.desc")}</p>
-      </div>
-      <Card className="mt-6 p-12 glass text-center">
-        <button onClick={() => setShowConsent(true)} className="mx-auto grid h-32 w-32 place-items-center rounded-full bg-destructive text-destructive-foreground animate-pulse-ring shadow-glow hover:scale-105 transition-transform">
-          <Mic className="h-14 w-14" />
-        </button>
-        <p className="mt-6 font-semibold text-lg">{lang === "th" ? "เริ่มบันทึก" : "Start Recording"}</p>
-        <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">{lang === "th" ? "AI จะถอดเสียง สรุป และสร้างบทความให้อัตโนมัติ" : "AI transcribes, summarizes, and generates an article automatically."}</p>
-      </Card>
-
-      <Dialog open={showConsent} onOpenChange={setShowConsent}>
-        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
-              {lang === "th" ? "ยินยอมการบันทึกตาม PDPA" : "PDPA-Compliant Recording Consent"}
-            </DialogTitle>
-            <DialogDescription>{lang === "th" ? "โปร่งใสและตรวจสอบได้ — โปรดอ่านก่อนยินยอม" : "Transparent and auditable — please review before consenting."}</DialogDescription>
-          </DialogHeader>
-
-          <TooltipProvider delayDuration={150}>
-            <div className="space-y-5">
-              {/* Data flow visualization */}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{lang === "th" ? "ขั้นตอนการประมวลผลข้อมูล" : "Data Flow"}</p>
-                <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border">
-                  {[
-                    { icon: MicIcon, label: lang === "th" ? "บันทึกเสียง" : "Audio recorded", sub: "WAV · 16kHz" },
-                    { icon: Cpu, label: lang === "th" ? "AI ประมวลผล" : "AI processed", sub: "STT · LLM" },
-                    { icon: FileIcon, label: lang === "th" ? "สร้างบทความ" : "Article generated", sub: "Markdown" },
-                  ].map((s, i, arr) => (
-                    <div key={s.label} className="flex items-center gap-2 flex-1">
-                      <div className="flex flex-col items-center gap-1 text-center flex-1">
-                        <div className="h-9 w-9 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground shadow-md">
-                          <s.icon className="h-4 w-4" />
-                        </div>
-                        <div className="text-[11px] font-medium leading-tight">{s.label}</div>
-                        <div className="text-[10px] font-mono text-muted-foreground">{s.sub}</div>
-                      </div>
-                      {i < arr.length - 1 && (
-                        <div className="flex-1 h-px bg-gradient-to-r from-primary/40 to-accent/40 relative">
-                          <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 -rotate-90 text-primary" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* What we collect & retention */}
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg border bg-secondary/40">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold mb-2"><Database className="h-3.5 w-3.5 text-primary" />{lang === "th" ? "ข้อมูลที่เก็บ" : "Data collected"}</div>
-                  <ul className="text-xs space-y-1 text-muted-foreground">
-                    <li>• {lang === "th" ? "ไฟล์เสียงและ transcript" : "Audio file & transcript"}</li>
-                    <li>• {lang === "th" ? "ชื่อบูธและเวลาที่บันทึก" : "Booth name & timestamp"}</li>
-                    <li>• {lang === "th" ? "User ID (ถ้าเข้าสู่ระบบ)" : "User ID (if signed in)"}</li>
-                  </ul>
-                </div>
-                <div className="p-3 rounded-lg border bg-secondary/40">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold mb-2"><Clock className="h-3.5 w-3.5 text-primary" />{lang === "th" ? "ระยะเวลาเก็บ" : "Retention"}</div>
-                  <ul className="text-xs space-y-1 text-muted-foreground">
-                    <li>• {lang === "th" ? "เสียงดิบ: 30 วัน" : "Raw audio: 30 days"}</li>
-                    <li>• {lang === "th" ? "Transcript: 12 เดือน" : "Transcript: 12 months"}</li>
-                    <li>• {lang === "th" ? "บทความ: ตามที่คุณกำหนด" : "Article: until you delete"}</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Required consent */}
-              <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${c1 ? "border-primary/60 bg-primary/5" : "border-border hover:bg-secondary"}`}>
-                <Checkbox checked={c1} onCheckedChange={v => setC1(!!v)} className="mt-0.5" />
-                <div className="text-sm">
-                  <span className="font-medium">{lang === "th" ? "ฉันยินยอมให้บันทึกการสนทนานี้" : "I consent to record this conversation"}</span>
-                  <span className="text-destructive font-bold ml-1">*</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">{lang === "th" ? "ผู้พูดคนอื่นต้องได้รับแจ้งด้วย" : "Other speakers must also be informed."}</p>
-                </div>
-              </label>
-
-              {/* Optional public sharing with tooltip */}
-              <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${c2 ? "border-accent bg-accent-soft" : "border-accent/40 bg-accent-soft/40 hover:bg-accent-soft"}`}>
-                <Checkbox checked={c2} onCheckedChange={v => setC2(!!v)} className="mt-0.5" />
-                <div className="text-sm flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium">{lang === "th" ? "เผยแพร่บทความสาธารณะ — รับส่วนลด 50%" : "Make article public — get 50% discount"}</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button type="button" onClick={(e) => e.preventDefault()} className="text-muted-foreground hover:text-foreground">
-                          <Info className="h-3.5 w-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p className="font-semibold mb-1">{lang === "th" ? "ทำไมถึงได้ส่วนลด?" : "Why the discount?"}</p>
-                        <p className="text-xs">{lang === "th" ? "บทความสาธารณะช่วยให้ผู้เข้าชมท่านอื่นค้นพบบูธนี้ และสร้างคุณค่าให้ชุมชน เราจึงคืนส่วนลด 50% เป็นการขอบคุณ" : "Public articles help other visitors discover this booth and add value to the community. We give back 50% as thanks."}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <div className="font-mono text-xs mt-1 text-muted-foreground">
-                    Standard: <span className="line-through">฿500</span> → Public: <span className="text-accent font-bold">฿250 (-50%)</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">{lang === "th" ? "(ไม่บังคับ — เลือกได้)" : "(Optional)"}</p>
-                </div>
-              </label>
-
-              <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${c3 ? "border-primary/60 bg-primary/5" : "border-border hover:bg-secondary"}`}>
-                <Checkbox checked={c3} onCheckedChange={v => setC3(!!v)} className="mt-0.5" />
-                <div className="text-sm">
-                  <span className="font-medium">{lang === "th" ? "ฉันยอมรับข้อตกลง PDPA" : "I accept the PDPA terms"}</span>
-                  <span className="text-destructive font-bold ml-1">*</span>
-                </div>
-              </label>
-
-              {/* PDPA full terms */}
-              <Accordion type="single" collapsible>
-                <AccordionItem value="pdpa" className="border rounded-lg px-4">
-                  <AccordionTrigger className="text-sm hover:no-underline">
-                    <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />{lang === "th" ? "อ่านข้อตกลง PDPA ฉบับเต็ม" : "Read full PDPA terms"}</span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <ScrollArea className="h-48 pr-3">
-                      <div className="text-xs space-y-2 leading-relaxed text-muted-foreground">
-                        <p><b className="text-foreground">1. {lang === "th" ? "ผู้ควบคุมข้อมูล" : "Data Controller"}.</b> EventIQ Co., Ltd. ("Company") collects and processes personal data under PDPA B.E. 2562 (2019).</p>
-                        <p><b className="text-foreground">2. {lang === "th" ? "วัตถุประสงค์" : "Purpose"}.</b> Audio is recorded solely to generate a written summary article for your personal reference, with optional public sharing.</p>
-                        <p><b className="text-foreground">3. {lang === "th" ? "ฐานทางกฎหมาย" : "Lawful Basis"}.</b> Explicit consent under Section 19 of PDPA. You may withdraw consent at any time.</p>
-                        <p><b className="text-foreground">4. {lang === "th" ? "การเปิดเผย" : "Disclosure"}.</b> Audio is processed by Botnoi AI (subcontractor under DPA). No third-party marketing use.</p>
-                        <p><b className="text-foreground">5. {lang === "th" ? "การเก็บรักษา" : "Retention"}.</b> Raw audio: 30 days. Transcript: 12 months. Generated article: until deleted by you.</p>
-                        <p><b className="text-foreground">6. {lang === "th" ? "สิทธิของเจ้าของข้อมูล" : "Your Rights"}.</b> Access, rectification, erasure, restriction, portability, objection, and withdrawal of consent — contact dpo@eventiq.example.</p>
-                        <p><b className="text-foreground">7. {lang === "th" ? "ความปลอดภัย" : "Security"}.</b> AES-256 at rest, TLS 1.3 in transit, role-based access, audit logs.</p>
-                        <p><b className="text-foreground">8. {lang === "th" ? "การโอนข้ามประเทศ" : "Cross-border Transfer"}.</b> Data is processed in Thailand and Singapore (AWS ap-southeast-1) under SCCs.</p>
-                      </div>
-                    </ScrollArea>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              {/* Signature */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs font-medium">{lang === "th" ? "ลงลายมือชื่อ" : "Signature"} <span className="text-destructive font-bold">*</span></p>
-                  <button onClick={clearSign} type="button" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-                    <RotateCcw className="h-3 w-3" /> {lang === "th" ? "ทำใหม่" : "Redo"}
-                  </button>
-                </div>
-                <canvas ref={canvasRef} width={500} height={150} className="w-full bg-secondary rounded-lg cursor-crosshair touch-none border-2 border-dashed"
-                  onPointerDown={startSign} onPointerMove={moveSign} onPointerUp={() => drawing.current = false} onPointerLeave={() => drawing.current = false} />
-                <p className="text-[10px] text-muted-foreground mt-1 text-center">{lang === "th" ? "เซ็นชื่อด้วยนิ้วหรือเมาส์" : "Sign with your finger or mouse"}</p>
-              </div>
-
-              {/* Audit notice */}
-              <div className="flex items-start gap-2 p-2.5 rounded-md bg-muted/50 border text-[11px] font-mono text-muted-foreground">
-                <Globe className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <div>
-                  {lang === "th" ? "การยินยอมจะถูกบันทึกพร้อม timestamp และ IP address (203.0.113.x) เพื่อการตรวจสอบ" : "Consent will be logged with timestamp and IP address (203.0.113.x) for audit purposes."}
-                  <div>UTC: {new Date().toISOString()}</div>
-                </div>
-              </div>
-            </div>
-          </TooltipProvider>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConsent(false)}>{lang === "th" ? "ยกเลิก" : "Cancel"}</Button>
-            <Button disabled={!canStart} onClick={() => { setShowConsent(false); setPhase("recording"); setSeconds(0); }} className="bg-gradient-primary">
-              <Play className="h-4 w-4 mr-1.5" /> {lang === "th" ? "ยินยอมและเริ่มบันทึก" : "Consent & Start"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-function SessionsList() {
-  const { lang, t } = useI18n();
-  const [open, setOpen] = useState<string | null>(null);
-  return (
-    <div className="animate-fade-up space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">{t("f4.title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("f4.desc")}</p>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {sessions.map(s => (
-          <Card key={s.id} className="p-5 glass hover:shadow-elegant transition-all">
-            <div className="flex items-start justify-between mb-2">
-              <Badge variant="outline" className="font-mono text-xs">{s.time}</Badge>
-              <div className="flex gap-1">{s.langs.map(l => <Badge key={l} variant="secondary" className="text-xs font-mono">{l}</Badge>)}</div>
-            </div>
-            <h3 className="font-semibold leading-tight">{s.title}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{s.speaker} · {s.room}</p>
-            <Button size="sm" variant="outline" className="mt-4 w-full" onClick={() => setOpen(s.id)}>
-              <FileText className="h-3.5 w-3.5 mr-1.5" /> {lang === "th" ? "ดูสรุป" : "View Summary"}
-            </Button>
-          </Card>
-        ))}
-      </div>
-      <Dialog open={!!open} onOpenChange={() => setOpen(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          {open && (() => { const s = sessions.find(x => x.id === open)!; return (
-            <>
-              <DialogHeader>
-                <DialogTitle>{s.title}</DialogTitle>
-                <DialogDescription>{s.speaker} · {s.time} · {s.room}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-5">
-                <div>
-                  <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">{lang === "th" ? "สรุปหลัก" : "Main Summary"}</h4>
-                  <ul className="space-y-1.5 text-sm list-disc pl-5">
-                    <li>Foundation models are commoditizing fast — value is in workflow integration</li>
-                    <li>Thai-language fine-tuning still requires curated datasets</li>
-                    <li>RAG outperforms fine-tuning for most enterprise use cases</li>
-                    <li>Latency is the next frontier; sub-second response is becoming standard</li>
-                    <li>Governance and PDPA compliance are no longer optional</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Q&A</h4>
-                  <Accordion type="single" collapsible>
-                    {[{q:"How do you handle hallucination?",a:"Strong retrieval + citation + temperature 0."},{q:"On-prem cost?",a:"Starts ~฿2M for inference rig + licensing."},{q:"Best Thai LLM?",a:"OpenThaiGPT and Typhoon are leading options."}].map((qa,i) => (
-                      <AccordionItem key={i} value={`q${i}`}><AccordionTrigger className="text-sm">{qa.q}</AccordionTrigger><AccordionContent className="text-sm">{qa.a}</AccordionContent></AccordionItem>
-                    ))}
-                  </Accordion>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex flex-wrap gap-1.5">
-                    {["#GenAI","#RAG","#Thai","#Enterprise"].map(t => <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>)}
-                  </div>
-                  <Badge className="bg-success text-white">😊 Positive</Badge>
-                </div>
-              </div>
-            </>
-          ); })()}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export const PLATFORM_EVENTS: PlatformEvent[] = [
     startDate: "2026-05-10",
     endDate: "2026-05-12",
     status: "live",
-    exhibitorCount: 20,
+    exhibitorCount: 30,
     sessionCount: 8,
     admins: [
       { id: "a1", name: "Pim Suthep", email: "pim@eventiq.app", avatar: "👩‍💼" },

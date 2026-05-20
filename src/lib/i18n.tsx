@@ -43,14 +43,21 @@ export const dict: Dict = {
   "hero.cta.exhibitor": tr("ลงทะเบียนเป็นผู้ออกบูธ", "Register as Exhibitor", { zh: "注册为参展商", fr: "S'inscrire comme exposant", vi: "Đăng ký nhà triển lãm", ja: "出展者として登録" }),
 
   // features (kept th/en, falls back gracefully)
+  "features.title": tr("ฟีเจอร์หลัก", "Core Features", { zh: "核心功能", fr: "Fonctionnalités", vi: "Tính năng chính", ja: "主な機能" }),
+  "features.sub": tr(
+    "ออกแบบมาเพื่อให้ผู้เยี่ยมชมเจอบูธที่ใช่ และผู้ออกบูธได้ลูกค้าตรงเป้า",
+    "Designed to help visitors find the right booth and exhibitors reach the right customers.",
+    {
+      zh: "帮助访客找到合适的展位，让参展商触达精准客户。",
+      fr: "Conçu pour aider les visiteurs à trouver le bon stand et les exposants à toucher les bons clients.",
+      vi: "Giúp khách tham quan tìm gian hàng phù hợp và nhà triển lãm tiếp cận khách hàng mục tiêu.",
+      ja: "来場者に最適なブースを、出展者に最適な顧客を結び付けます。",
+    }
+  ),
   "f1.title": tr("จับคู่บูธอัจฉริยะ", "Booth Matching"),
   "f1.desc": tr("เล่า pain ของคุณ AI หาบูธที่ตรงที่สุดให้ทันที", "Describe your pain, get the perfect booth match instantly."),
   "f2.title": tr("ถามอะไรก็ได้เกี่ยวกับงาน", "Event FAQ"),
   "f2.desc": tr("ตารางเซสชั่น แผนที่ ร้านอาหาร ตอบครบจบในแชท", "Schedules, maps, food courts — answered in chat."),
-  "f3.title": tr("บันทึกความทรงจำงาน", "Event Memory"),
-  "f3.desc": tr("อัดเสียงคุยกับบูธ AI สรุปเป็นบทความให้คุณ", "Record booth conversations. AI summarizes into articles."),
-  "f4.title": tr("สรุป Q&A เซสชั่น", "Q&A Summary"),
-  "f4.desc": tr("อ่านสรุปทุกเซสชั่นที่คุณพลาด พร้อม Q&A ที่น่าสนใจ", "Read summaries of any session you missed."),
 
   "how.title": tr("ใช้งานอย่างไร", "How it works", { zh: "如何使用", fr: "Comment ça marche", vi: "Cách hoạt động", ja: "使い方" }),
   "how.1": tr("เล่า pain หรือความสนใจของคุณ", "Describe your pain or interest"),
@@ -62,8 +69,9 @@ export const dict: Dict = {
   // visitor tabs
   "tab.find": tr("หาบูธ", "Find Booth"),
   "tab.ask": tr("ถามเรื่องงาน", "Ask Event"),
-  "tab.memory": tr("บันทึกความทรงจำ", "Event Memory"),
-  "tab.sessions": tr("สรุปเซสชั่น", "Sessions"),
+
+  // visitor event banner
+  "visitor.currentEvent": tr("กำลังอยู่ในงาน", "Current event", { zh: "当前活动", fr: "Événement actuel", vi: "Sự kiện hiện tại", ja: "現在のイベント" }),
 
   // events page
   "events.title": tr("งานทั้งหมดในระบบ", "All Events", { zh: "所有活动", fr: "Tous les événements", vi: "Tất cả sự kiện", ja: "すべてのイベント" }),
