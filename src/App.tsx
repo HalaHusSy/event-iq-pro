@@ -1,5 +1,7 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,22 +9,31 @@ import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { RoleGate } from "@/lib/auth/RoleGate";
-import Index from "./pages/Index.tsx";
-import Visitor from "./pages/Visitor.tsx";
-import Exhibitor from "./pages/Exhibitor.tsx";
-import Speaker from "./pages/Speaker.tsx";
-import Admin from "./pages/Admin.tsx";
-import Widget from "./pages/Widget.tsx";
-import Events from "./pages/Events.tsx";
-import Platform from "./pages/Platform.tsx";
-import Login from "./pages/Login.tsx";
-import RootDashboard from "./pages/dashboard/RootDashboard.tsx";
-import AdminDashboard from "./pages/dashboard/AdminDashboard.tsx";
-import OrganizerDashboard from "./pages/dashboard/OrganizerDashboard.tsx";
-import ExhibitorDashboard from "./pages/dashboard/ExhibitorDashboard.tsx";
-import NotFound from "./pages/NotFound.tsx";
 import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
 import { VersionChecker } from "./components/VersionChecker";
+
+// Lazy-load every route — each becomes its own chunk so the initial bundle
+// only ships the landing page + shared providers (was a single 1.4 MB chunk).
+const Index = lazy(() => import("./pages/Index.tsx"));
+const Visitor = lazy(() => import("./pages/Visitor.tsx"));
+const Exhibitor = lazy(() => import("./pages/Exhibitor.tsx"));
+const Speaker = lazy(() => import("./pages/Speaker.tsx"));
+const Admin = lazy(() => import("./pages/Admin.tsx"));
+const Widget = lazy(() => import("./pages/Widget.tsx"));
+const Events = lazy(() => import("./pages/Events.tsx"));
+const Platform = lazy(() => import("./pages/Platform.tsx"));
+const Login = lazy(() => import("./pages/Login.tsx"));
+const RootDashboard = lazy(() => import("./pages/dashboard/RootDashboard.tsx"));
+const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard.tsx"));
+const OrganizerDashboard = lazy(() => import("./pages/dashboard/OrganizerDashboard.tsx"));
+const ExhibitorDashboard = lazy(() => import("./pages/dashboard/ExhibitorDashboard.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+
+const RouteFallback = () => (
+  <div className="grid place-items-center min-h-screen">
+    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+  </div>
+);
 
 // Sensible defaults so a single hung request doesn't freeze the UI:
 // - retry once only (default is 3 with exponential backoff = ~30s before giving up)
@@ -53,6 +64,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
+              <Suspense fallback={<RouteFallback />}>
               <Routes>
                 {/* Public marketing / demo pages */}
                 <Route path="/" element={<Index />} />
@@ -117,6 +129,7 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
               <BotnoiWidget />
               <VersionChecker />
             </AuthProvider>
