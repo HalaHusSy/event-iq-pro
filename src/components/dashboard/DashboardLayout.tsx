@@ -58,7 +58,7 @@ export function DashboardLayout({
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
               <Sparkles className="h-4 w-4" />
             </div>
-            <span>EventIQ</span>
+            <span className="tracking-tight">YOU WALK I FIND</span>
             <Badge variant="outline" className={`ml-2 hidden sm:inline-flex font-mono text-[10px] ${roleBadgeClass}`}>
               {roleBadge}
             </Badge>

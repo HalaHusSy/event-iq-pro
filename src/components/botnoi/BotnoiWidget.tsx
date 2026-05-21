@@ -56,10 +56,10 @@ function showWidget() {
  */
 export function BotnoiWidget({
   botId = import.meta.env.VITE_BOTNOI_BOT_ID || '6a013f62fb3079f00791473e',
-  botName = 'EventIQ Assistant',
+  botName = 'YouWalk Assistant',
   themeColor = '#4F46E5',
   locale = 'th',
-  greetingMessage = 'สวัสดีค่ะ! ฉันคือ EventIQ ช่วยหา booth ที่ใช่ให้คุณ ลองพิมพ์ pain point หรือถาม FAQ ได้เลย',
+  greetingMessage = 'สวัสดีค่ะ! ฉันคือ YouWalk ช่วยหา booth ที่ใช่ให้คุณ ลองพิมพ์ pain point หรือถาม FAQ ได้เลย',
   loggedInGreeting = 'ยินดีต้อนรับกลับมาค่ะ',
   defaultOpen = false,
   botLogo,

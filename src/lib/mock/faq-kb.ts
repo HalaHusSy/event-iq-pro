@@ -33,7 +33,7 @@ const data: Omit<FAQ, 'id'>[] = [
   { category: 'transport', question_th: 'มี shuttle bus ไหม?', question_en: 'Shuttle bus?', answer_th: 'มี shuttle ทุก 30 นาทีจาก BTS อโศก', answer_en: 'Shuttle every 30 min from BTS Asok' },
   { category: 'transport', question_th: 'จุดเรียก Grab?', question_en: 'Grab pickup?', answer_th: 'ชั้น G ทางออกฝั่งใต้', answer_en: 'Ground floor south exit' },
   { category: 'transport', question_th: 'มีที่ชาร์จ EV?', question_en: 'EV charging?', answer_th: 'ชั้น B1 6 จุด', answer_en: 'Floor B1, 6 chargers' },
-  { category: 'facilities', question_th: 'WiFi รหัสอะไร?', question_en: 'WiFi password?', answer_th: 'SSID: EventIQ-Free, ไม่ต้องใช้รหัส', answer_en: 'SSID: EventIQ-Free, no password' },
+  { category: 'facilities', question_th: 'WiFi รหัสอะไร?', question_en: 'WiFi password?', answer_th: 'SSID: YouWalk-Free, ไม่ต้องใช้รหัส', answer_en: 'SSID: YouWalk-Free, no password' },
   { category: 'facilities', question_th: 'มีจุดชาร์จมือถือ?', question_en: 'Phone charging stations?', answer_th: 'มีในทุก hall ฟรี', answer_en: 'Free in every hall' },
   { category: 'facilities', question_th: 'ห้องปฐมพยาบาล?', question_en: 'First aid?', answer_th: 'ชั้น G ใกล้ Hall A พยาบาลตลอดเวลา', answer_en: 'Ground floor near Hall A, on-site nurse' },
   { category: 'facilities', question_th: 'ห้องน้ำผู้พิการ?', question_en: 'Accessible restrooms?', answer_th: 'มีในทุกชั้น', answer_en: 'Available on every floor' },

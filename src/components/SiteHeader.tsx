@@ -81,7 +81,7 @@ export default function SiteHeader() {
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
             <Sparkles className="h-4 w-4" />
           </div>
-          <span>EventIQ</span>
+          <span className="tracking-tight">YOU WALK I FIND</span>
         </Link>
 
         {/* Desktop nav */}
@@ -160,7 +160,7 @@ export default function SiteHeader() {
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  EventIQ
+                  YOU WALK I FIND
                 </SheetTitle>
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-1">

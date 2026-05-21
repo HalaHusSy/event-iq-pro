@@ -64,7 +64,7 @@ function DemoHost() {
   const copy = () => { navigator.clipboard.writeText(snippet); setCopied(true); toast.success("Snippet copied"); setTimeout(() => setCopied(false), 1800); };
   return (
     <div className="container py-12 max-w-4xl">
-      <Badge variant="outline" className="mb-3 gap-1.5"><Sparkles className="h-3 w-3 text-accent" />EventIQ Widget · v1.0</Badge>
+      <Badge variant="outline" className="mb-3 gap-1.5"><Sparkles className="h-3 w-3 text-accent" />YouWalk Widget · v1.0</Badge>
       <h1 className="text-4xl font-bold mb-3">Embeddable Chat Widget</h1>
       <p className="text-muted-foreground mb-8 max-w-2xl">
         Drop a single line of script onto any exhibitor microsite, partner landing page, or event portal. Your visitors get instant access to booth matching, FAQ, memory articles, and the schedule — powered by Botnoi AI.
@@ -134,7 +134,7 @@ function FloatingWidget({ eventId, themeStyle, position, initialOpen }:
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-xl">🤖</div>
                 <div>
-                  <div className="font-semibold text-sm flex items-center gap-1.5">EventIQ Assistant <Sparkles className="h-3 w-3 text-accent-foreground/90" /></div>
+                  <div className="font-semibold text-sm flex items-center gap-1.5">YouWalk Assistant <Sparkles className="h-3 w-3 text-accent-foreground/90" /></div>
                   <div className="text-[11px] opacity-90 flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                     Online · Powered by Botnoi
@@ -184,14 +184,14 @@ function FloatingWidget({ eventId, themeStyle, position, initialOpen }:
               <button
                 onClick={() => setOpen(true)}
                 className="group relative h-14 w-14 rounded-full bg-gradient-primary shadow-glow flex items-center justify-center text-primary-foreground hover:scale-110 transition-transform animate-fade-up"
-                aria-label="Open EventIQ assistant"
+                aria-label="Open YouWalk assistant"
               >
                 <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping opacity-60" />
                 <MessageCircle className="h-6 w-6 relative" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent text-[9px] font-bold text-accent-foreground flex items-center justify-center shadow">AI</span>
               </button>
             </TooltipTrigger>
-            <TooltipContent side="left">Ask EventIQ — powered by Botnoi</TooltipContent>
+            <TooltipContent side="left">Ask YouWalk — powered by Botnoi</TooltipContent>
           </Tooltip>
         )}
       </div>

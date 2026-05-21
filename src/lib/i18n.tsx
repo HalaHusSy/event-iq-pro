@@ -106,7 +106,7 @@ export const dict: Dict = {
   "events.sessions": tr("เซสชั่น", "Sessions", { zh: "议程", fr: "Sessions", vi: "Phiên", ja: "セッション" }),
 
   // platform page
-  "platform.title": tr("แพลตฟอร์ม EventIQ", "EventIQ Platform", { zh: "EventIQ 平台", fr: "Plateforme EventIQ", vi: "Nền tảng EventIQ", ja: "EventIQ プラットフォーム" }),
+  "platform.title": tr("แพลตฟอร์ม YOU WALK I FIND", "YOU WALK I FIND Platform", { zh: "YOU WALK I FIND 平台", fr: "Plateforme YOU WALK I FIND", vi: "Nền tảng YOU WALK I FIND", ja: "YOU WALK I FIND プラットフォーム" }),
   "platform.sub": tr("Root account · จัดการทุก event ในที่เดียว", "Root account · Manage every event in one place", { zh: "Root 账户 · 在一处管理所有活动", fr: "Compte Root · Gérez tous les événements", vi: "Tài khoản Root · Quản lý mọi sự kiện", ja: "Root アカウント · すべてのイベントを一元管理" }),
   "platform.tab.events": tr("จัดการ Event", "Events", { zh: "活动", fr: "Événements", vi: "Sự kiện", ja: "イベント" }),
   "platform.tab.admins": tr("Event Admin", "Event Admins", { zh: "活动管理员", fr: "Admins événement", vi: "Quản trị sự kiện", ja: "イベント管理者" }),
@@ -144,7 +144,7 @@ export const dict: Dict = {
     "Ready to make your exhibition smarter?",
     { zh: "准备好让您的展会更智能了吗？", fr: "Prêt à rendre votre salon plus intelligent ?", vi: "Sẵn sàng nâng cấp triển lãm của bạn?", ja: "展示会をスマートに進化させませんか？" }
   ),
-  "cta.sub": tr("เริ่มใช้ EventIQ ฟรี — ไม่ต้องใช้บัตรเครดิต", "Start with EventIQ for free — no credit card needed", { zh: "免费开始使用 EventIQ — 无需信用卡", fr: "Démarrez gratuitement — sans carte de crédit", vi: "Bắt đầu miễn phí — không cần thẻ", ja: "無料で開始 — クレジットカード不要" }),
+  "cta.sub": tr("เริ่มใช้ YOU WALK I FIND ฟรี — ไม่ต้องใช้บัตรเครดิต", "Start with YOU WALK I FIND for free — no credit card needed", { zh: "免费开始使用 YOU WALK I FIND — 无需信用卡", fr: "Démarrez gratuitement — sans carte de crédit", vi: "Bắt đầu miễn phí — không cần thẻ", ja: "無料で開始 — クレジットカード不要" }),
   "cta.demo": tr("ดูเดโม", "Watch demo", { zh: "观看演示", fr: "Voir la démo", vi: "Xem demo", ja: "デモを見る" }),
   "cta.register": tr("ลงทะเบียน Exhibitor", "Register as Exhibitor", { zh: "注册参展商", fr: "S'inscrire comme exposant", vi: "Đăng ký nhà triển lãm", ja: "出展者登録" }),
 

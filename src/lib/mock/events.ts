@@ -30,7 +30,7 @@ export const PLATFORM_EVENTS: PlatformEvent[] = [
       { id: "a1", name: "Pim Suthep", email: "pim@eventiq.app", avatar: "👩‍💼" },
       { id: "a2", name: "Korn Tana", email: "korn@eventiq.app", avatar: "👨‍💼" },
     ],
-    bot: { connected: true, botId: "6a013f62fb3079f00791473e", lineOaId: "@eventiq", lineOaName: "EventIQ Assistant" },
+    bot: { connected: true, botId: "6a013f62fb3079f00791473e", lineOaId: "@youwalk", lineOaName: "YouWalk Assistant" },
     description: "งานเทคโนโลยีที่ใหญ่ที่สุดของไทย รวม AI / Cloud / Fintech / Robotics",
   },
   {
