@@ -81,7 +81,8 @@ export async function getMyExhibitor(): Promise<Exhibitor | null> {
 }
 
 export async function listMyExhibitors(): Promise<Exhibitor[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   if (!user) return [];
   const { data, error } = await supabase
     .from("exhibitors")
@@ -93,7 +94,8 @@ export async function listMyExhibitors(): Promise<Exhibitor[]> {
 }
 
 export async function getMyOrganizer() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   if (!user) return null;
   const { data, error } = await supabase
     .from("organizers")
@@ -145,7 +147,11 @@ export async function createEvent(input: {
   endDate?: string;
   status?: string;
 }) {
-  const { data: { user } } = await withTimeout(supabase.auth.getUser(), 10000, "Get session");
+  // Use getSession() — reads from localStorage, no network call.
+  // getUser() makes HTTP call to /auth/v1/user which can hang if a Chrome
+  // extension intercepts it. We only need user.id for the created_by field.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const { data, error } = await withTimeout(
     supabase
       .from("events")
@@ -202,7 +208,9 @@ export async function createExhibitor(input: {
   website?: string;
   lineOa?: string;
 }) {
-  const { data: { user } } = await withTimeout(supabase.auth.getUser(), 10000, "Get session");
+  // getSession() reads from localStorage — no network, immune to extension block.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const socialLinks: Record<string, string> = {};
   if (input.lineOa) socialLinks.line_oa = input.lineOa;
   const { data, error } = await withTimeout(
@@ -283,7 +291,8 @@ export async function createAnnouncement(input: {
   title: string;
   body?: string;
 }) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const { data, error } = await supabase
     .from("announcements")
     .insert({
@@ -361,7 +370,8 @@ export async function getPlatformSetting(key: string) {
 }
 
 export async function upsertPlatformSetting(key: string, value: Json) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const { error } = await supabase
     .from("platform_settings")
     .upsert({ key, value, updated_by: user?.id ?? null });
