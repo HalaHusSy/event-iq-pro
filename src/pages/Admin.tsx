@@ -168,7 +168,7 @@ const painCategoryData = [
   { name: "Other", value: 4 },
 ];
 
-function downloadCSV(filename: string, rows: Record<string, any>[]) {
+function downloadCSV(filename: string, rows: Record<string, unknown>[]) {
   if (!rows.length) return;
   const headers = Object.keys(rows[0]);
   const csv = [headers.join(","), ...rows.map(r => headers.map(h => JSON.stringify(r[h] ?? "")).join(","))].join("\n");
@@ -186,7 +186,7 @@ function downloadPDF(title: string) {
   toast.success(`PDF prepared: ${title}`);
 }
 
-function ChartActions({ title, rows }: { title: string; rows: Record<string, any>[] }) {
+function ChartActions({ title, rows }: { title: string; rows: Record<string, unknown>[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
