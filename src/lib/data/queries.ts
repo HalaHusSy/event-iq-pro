@@ -1,6 +1,28 @@
 import { supabase } from "@/lib/supabase/client";
 import type { AppRole, Exhibitor, Json } from "@/lib/supabase/types";
 
+/**
+ * Wrap a promise with a timeout. Rejects with a friendly error if the
+ * operation doesn't complete in time (typically: browser extension blocking,
+ * network hung, or VPN issue).
+ */
+function withTimeout<T>(promise: Promise<T>, ms = 15000, opName = "Request"): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              `${opName} timeout หลัง ${ms / 1000} วินาที — อาจถูก browser extension block หรือ network มีปัญหา ลอง Incognito หรือปิด extension ดู`,
+            ),
+          ),
+        ms,
+      ),
+    ),
+  ]);
+}
+
 export async function listProfiles() {
   const { data, error } = await supabase
     .from("profiles")
@@ -111,32 +133,49 @@ export async function createEvent(input: {
   endDate?: string;
   status?: string;
 }) {
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data, error } = await supabase
-    .from("events")
-    .insert({
-      organizer_id: input.organizerId,
-      name: input.name,
-      description: input.description ?? null,
-      location: input.location ?? null,
-      start_date: input.startDate ?? null,
-      end_date: input.endDate ?? null,
-      status: input.status ?? "upcoming",
-      created_by: user?.id ?? null,
-    })
-    .select()
-    .single();
-  if (error) throw error;
+  const { data: { user } } = await withTimeout(supabase.auth.getUser(), 10000, "Get session");
+  const { data, error } = await withTimeout(
+    supabase
+      .from("events")
+      .insert({
+        organizer_id: input.organizerId,
+        name: input.name,
+        description: input.description ?? null,
+        location: input.location ?? null,
+        start_date: input.startDate ?? null,
+        end_date: input.endDate ?? null,
+        status: input.status ?? "upcoming",
+        created_by: user?.id ?? null,
+      })
+      .select()
+      .single(),
+    15000,
+    "Create event",
+  );
+  if (error) {
+    if (error.code === "42501" || error.message.toLowerCase().includes("permission")) {
+      throw new Error("ไม่มีสิทธิ์สร้าง event (ต้องเป็น admin หรือ organizer)");
+    }
+    throw error;
+  }
   return data;
 }
 
 export async function updateEvent(id: string, patch: Record<string, unknown>) {
-  const { error } = await supabase.from("events").update(patch).eq("id", id);
+  const { error } = await withTimeout(
+    supabase.from("events").update(patch).eq("id", id),
+    15000,
+    "Update event",
+  );
   if (error) throw error;
 }
 
 export async function deleteEvent(id: string) {
-  const { error } = await supabase.from("events").delete().eq("id", id);
+  const { error } = await withTimeout(
+    supabase.from("events").delete().eq("id", id),
+    15000,
+    "Delete event",
+  );
   if (error) throw error;
 }
 
@@ -150,33 +189,54 @@ export async function createExhibitor(input: {
   contactEmail?: string;
   website?: string;
 }) {
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data, error } = await supabase
-    .from("exhibitors")
-    .insert({
-      event_id: input.eventId,
-      booth_id: input.boothId,
-      company_name: input.companyName,
-      user_id: input.userId ?? null,
-      description: input.description ?? null,
-      product_info: input.productInfo ?? null,
-      contact_email: input.contactEmail ?? null,
-      website: input.website ?? null,
-      created_by: user?.id ?? null,
-    })
-    .select()
-    .single();
-  if (error) throw error;
+  const { data: { user } } = await withTimeout(supabase.auth.getUser(), 10000, "Get session");
+  const { data, error } = await withTimeout(
+    supabase
+      .from("exhibitors")
+      .insert({
+        event_id: input.eventId,
+        booth_id: input.boothId,
+        company_name: input.companyName,
+        user_id: input.userId ?? null,
+        description: input.description ?? null,
+        product_info: input.productInfo ?? null,
+        contact_email: input.contactEmail ?? null,
+        website: input.website ?? null,
+        created_by: user?.id ?? null,
+      })
+      .select()
+      .single(),
+    15000,
+    "Create exhibitor",
+  );
+  if (error) {
+    // Friendly message for common errors
+    if (error.code === "23505") {
+      throw new Error(`Booth ID "${input.boothId}" มีอยู่แล้วในงานนี้ ใช้ ID อื่นได้ไหม`);
+    }
+    if (error.code === "42501" || error.message.toLowerCase().includes("permission")) {
+      throw new Error("ไม่มีสิทธิ์เพิ่ม exhibitor ใน event นี้ (ต้องเป็น organizer ของ event นั้น)");
+    }
+    throw error;
+  }
   return data;
 }
 
 export async function updateExhibitor(id: string, patch: Record<string, unknown>) {
-  const { error } = await supabase.from("exhibitors").update(patch).eq("id", id);
+  const { error } = await withTimeout(
+    supabase.from("exhibitors").update(patch).eq("id", id),
+    15000,
+    "Update exhibitor",
+  );
   if (error) throw error;
 }
 
 export async function deleteExhibitor(id: string) {
-  const { error } = await supabase.from("exhibitors").delete().eq("id", id);
+  const { error } = await withTimeout(
+    supabase.from("exhibitors").delete().eq("id", id),
+    15000,
+    "Delete exhibitor",
+  );
   if (error) throw error;
 }
 
