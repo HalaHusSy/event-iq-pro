@@ -59,7 +59,7 @@ export function BotnoiWidget({
   botName = 'YouWalk Assistant',
   themeColor = '#4F46E5',
   locale = 'th',
-  greetingMessage = 'สวัสดีค่ะ! ฉันคือ YouWalk ช่วยหา booth ที่ใช่ให้คุณ ลองพิมพ์ pain point หรือถาม FAQ ได้เลย',
+  greetingMessage = 'สวัสดีค่ะ! ฉันคือ YouWalk Assistant 👋\n\nลองถามได้เลย เช่น:\n• "ตอนนี้มีงานอะไรกำลังจัด?"\n• "งานเกี่ยวกับ AI / เทคโนโลยี?"\n• "เดือนหน้ามีงานอะไรบ้าง?"\n• "ที่ BITEC ตอนนี้มีงานไหม?"\n\n👉 หา booth ตรง pain ของคุณ → กดเลือก event ที่หน้า Events ก่อน แล้วเข้า "Find Booth"',
   loggedInGreeting = 'ยินดีต้อนรับกลับมาค่ะ',
   defaultOpen = false,
   botLogo,
