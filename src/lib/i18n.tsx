@@ -91,6 +91,17 @@ export const dict: Dict = {
   // visitor tabs
   "tab.find": tr("หาบูธ", "Find Booth", { zh: "找展位", fr: "Trouver un stand", vi: "Tìm gian hàng", ja: "ブースを探す" }),
   "tab.ask": tr("ถามเรื่องงาน", "Ask Event", { zh: "活动咨询", fr: "Questions événement", vi: "Hỏi về sự kiện", ja: "イベントに質問" }),
+  "tab.info": tr("ข้อมูลงาน", "Event Info", { zh: "活动信息", fr: "Infos événement", vi: "Thông tin sự kiện", ja: "イベント情報" }),
+  "tab.booths": tr("Booth ทั้งหมด", "All Booths", { zh: "所有展位", fr: "Tous les stands", vi: "Tất cả gian hàng", ja: "全ブース" }),
+  "info.location": tr("สถานที่จัดงาน", "Location", { zh: "举办地点", fr: "Lieu", vi: "Địa điểm", ja: "開催地" }),
+  "info.dates": tr("วันที่จัดงาน", "Event dates", { zh: "活动日期", fr: "Dates", vi: "Ngày diễn ra", ja: "開催日" }),
+  "info.description": tr("รายละเอียดงาน", "About this event", { zh: "活动详情", fr: "À propos", vi: "Về sự kiện", ja: "イベントについて" }),
+  "info.floorPlan": tr("แผนผังงาน", "Floor plan", { zh: "场地图", fr: "Plan du salon", vi: "Sơ đồ", ja: "フロアマップ" }),
+  "info.exhibitorCount": tr("จำนวน Exhibitor", "Total exhibitors", { zh: "参展商数", fr: "Exposants", vi: "Số nhà triển lãm", ja: "出展者数" }),
+  "booths.empty": tr("ยังไม่มี exhibitor ในงานนี้", "No exhibitors yet", { zh: "暂无参展商", fr: "Aucun exposant", vi: "Chưa có nhà triển lãm", ja: "出展者がありません" }),
+  "booths.contact": tr("ติดต่อ", "Contact", { zh: "联系", fr: "Contact", vi: "Liên hệ", ja: "連絡先" }),
+  "booths.tags": tr("หมวด", "Tags", { zh: "标签", fr: "Tags", vi: "Thẻ", ja: "タグ" }),
+  "booths.searchPlaceholder": tr("ค้นหาบริษัท / booth ID...", "Search company / booth ID...", { zh: "搜索公司 / 展位编号...", fr: "Rechercher...", vi: "Tìm kiếm...", ja: "検索..." }),
 
   // visitor event banner
   "visitor.currentEvent": tr("กำลังอยู่ในงาน", "Current event", { zh: "当前活动", fr: "Événement actuel", vi: "Sự kiện hiện tại", ja: "現在のイベント" }),

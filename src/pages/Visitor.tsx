@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Target, MessageSquare, Send, Sparkles, Mic2, Bookmark, MapPin, ChevronDown, Brain, X, GitCompare, Filter, Calendar, Loader2 } from "lucide-react";
+import { Target, MessageSquare, Send, Sparkles, Mic2, Bookmark, MapPin, ChevronDown, Brain, X, GitCompare, Filter, Calendar, Loader2, Info, Building2, Globe, Mail, Search } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,8 +21,11 @@ import { Match, sampleMatches, faqs } from "@/lib/mock";
 const pickBilingual = (entry: { th: string; en: string }, lang: Lang): string =>
   lang === "th" ? entry.th : entry.en;
 import { PLATFORM_EVENTS } from "@/lib/mock/events";
-import { listEvents } from "@/lib/data/queries";
+import { listEvents, listExhibitors } from "@/lib/data/queries";
 import { toast } from "sonner";
+import type { Database } from "@/lib/supabase/types";
+
+type EventRow = Database["public"]["Tables"]["events"]["Row"];
 
 // Cover emoji picker for DB events (mirrors logic in Events.tsx)
 function pickCover(name: string): string {
@@ -37,6 +40,8 @@ function pickCover(name: string): string {
 }
 
 const tabs = [
+  { id: "info", icon: Info, key: "tab.info" },
+  { id: "booths", icon: Building2, key: "tab.booths" },
   { id: "find", icon: Target, key: "tab.find" },
   { id: "ask", icon: MessageSquare, key: "tab.ask" },
 ];
@@ -164,6 +169,8 @@ export default function VisitorPortal() {
             </Card>
           </aside>
           <section className="min-w-0">
+            {active === "info" && <EventInfo event={dbEvent} banner={banner} />}
+            {active === "booths" && <EventBooths eventId={dbEvent?.id ?? null} />}
             {active === "find" && <FindBooth />}
             {active === "ask" && <AskEvent />}
           </section>
@@ -542,6 +549,235 @@ function AskEvent() {
           </div>
         </div>
       </Card>
+    </div>
+  );
+}
+
+/* ===== Event Info Tab — แสดงรายละเอียดงาน + แผนผัง ===== */
+
+function EventInfo({
+  event,
+  banner,
+}: {
+  event: EventRow | null | undefined;
+  banner: BannerEvent | null;
+}) {
+  const { t, lang } = useI18n();
+  const fmt = (iso?: string | null) =>
+    iso
+      ? new Date(iso).toLocaleDateString(lang === "th" ? "th-TH" : lang, {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "—";
+
+  if (!banner) return null;
+
+  return (
+    <div className="space-y-5">
+      {/* Hero with banner image */}
+      <Card className="overflow-hidden">
+        <div className="aspect-[16/6] bg-gradient-primary grid place-items-center text-7xl relative">
+          {event?.banner_url ? (
+            <img
+              src={event.banner_url}
+              alt={banner.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <span className="relative z-10">{banner.cover}</span>
+          )}
+        </div>
+        <div className="p-5">
+          <h2 className="text-2xl font-bold mb-2">{banner.name}</h2>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-start gap-2">
+              <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+              <div>
+                <div className="text-xs text-muted-foreground">{t("info.dates")}</div>
+                <div className="font-medium">{fmt(banner.startDate)} – {fmt(banner.endDate)}</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+              <div>
+                <div className="text-xs text-muted-foreground">{t("info.location")}</div>
+                <div className="font-medium">{banner.venue || "—"}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Description */}
+      {event?.description && (
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            {t("info.description")}
+          </h3>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed">{event.description}</p>
+        </Card>
+      )}
+
+      {/* Floor plan */}
+      {event?.floor_plan_url && (
+        <Card className="overflow-hidden">
+          <div className="p-5 pb-3 border-b">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("info.floorPlan")}
+            </h3>
+          </div>
+          <div className="p-5">
+            <img
+              src={event.floor_plan_url}
+              alt="Floor plan"
+              className="w-full rounded-lg border"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ===== Event Booths Tab — รายการ exhibitor ทั้งหมดของ event นี้ ===== */
+
+function EventBooths({ eventId }: { eventId: string | null }) {
+  const { t, lang } = useI18n();
+  const [search, setSearch] = useState("");
+
+  const { data: exhibitors = [], isLoading } = useQuery({
+    queryKey: ["exhibitors", "by-event", eventId],
+    queryFn: () => (eventId ? listExhibitors(eventId) : Promise.resolve([])),
+    enabled: !!eventId,
+  });
+
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? exhibitors.filter(
+        (x) =>
+          x.company_name?.toLowerCase().includes(q) ||
+          x.booth_id?.toLowerCase().includes(q) ||
+          (x.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
+      )
+    : exhibitors;
+
+  if (isLoading) {
+    return (
+      <Card className="p-12 grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </Card>
+    );
+  }
+
+  if (exhibitors.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <Building2 className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+        <p className="text-sm text-muted-foreground">{t("booths.empty")}</p>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-xl font-bold">{t("tab.booths")}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {filtered.length} / {exhibitors.length} {lang === "th" ? "booth" : "booths"}
+          </p>
+        </div>
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("booths.searchPlaceholder")}
+            className="pl-8 h-9"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-3">
+        {filtered.map((booth) => {
+          const social = (booth.social_links ?? {}) as Record<string, string>;
+          const lineOa = social.line_oa;
+          return (
+            <Card key={booth.id} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 shrink-0 rounded-lg border bg-muted/30 grid place-items-center">
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <h3 className="font-semibold leading-tight">{booth.company_name}</h3>
+                      <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                        Booth {booth.booth_id}
+                      </div>
+                    </div>
+                  </div>
+                  {booth.description && (
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                      {booth.description}
+                    </p>
+                  )}
+                  {(booth.tags ?? []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {booth.tags?.slice(0, 5).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-[10px] py-0">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 mt-3 text-xs">
+                    {booth.contact_email && (
+                      <a
+                        href={`mailto:${booth.contact_email}`}
+                        className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        Email
+                      </a>
+                    )}
+                    {booth.website && (
+                      <a
+                        href={booth.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                        Website
+                      </a>
+                    )}
+                    {lineOa && (
+                      <a
+                        href={`https://line.me/R/ti/p/${encodeURIComponent(lineOa)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-medium"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        {lineOa}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
