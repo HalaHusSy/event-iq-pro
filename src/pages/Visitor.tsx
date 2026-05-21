@@ -22,10 +22,13 @@ const pickBilingual = (entry: { th: string; en: string }, lang: Lang): string =>
   lang === "th" ? entry.th : entry.en;
 import { PLATFORM_EVENTS } from "@/lib/mock/events";
 import { listEvents, listExhibitors } from "@/lib/data/queries";
+import { findBooth, askEvent, type BoothMatch } from "@/lib/data/chat";
 import { toast } from "sonner";
 import type { Database } from "@/lib/supabase/types";
 
 type EventRow = Database["public"]["Tables"]["events"]["Row"];
+
+type EventRef = { id: string | null; slug: string | null; name: string };
 
 // Cover emoji picker for DB events (mirrors logic in Events.tsx)
 function pickCover(name: string): string {
@@ -136,6 +139,14 @@ export default function VisitorPortal() {
     return <Navigate to="/events" state={{ requireEvent: true }} replace />;
   }
 
+  // Event reference passed down to chat components — bind chatbot strictly to
+  // the current event so it can't leak booths/answers from other events.
+  const eventRef: EventRef = {
+    id: dbEvent?.id ?? null,
+    slug: mockEvent?.slug ?? null,
+    name: banner.name,
+  };
+
   const setTab = (id: string) => {
     const next: Record<string, string> = { tab: id };
     if (eventSlug) next.event = eventSlug;
@@ -171,8 +182,8 @@ export default function VisitorPortal() {
           <section className="min-w-0">
             {active === "info" && <EventInfo event={dbEvent} banner={banner} />}
             {active === "booths" && <EventBooths eventId={dbEvent?.id ?? null} />}
-            {active === "find" && <FindBooth />}
-            {active === "ask" && <AskEvent />}
+            {active === "find" && <FindBooth eventRef={eventRef} />}
+            {active === "ask" && <AskEvent eventRef={eventRef} />}
           </section>
         </div>
       </div>
@@ -180,21 +191,39 @@ export default function VisitorPortal() {
   );
 }
 
-function FindBooth() {
+function FindBooth({ eventRef }: { eventRef: EventRef }) {
   const { lang, t } = useI18n();
   const [pain, setPain] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Match[] | null>(null);
+  const [results, setResults] = useState<BoothMatch[] | null>(null);
+  const [totalCandidates, setTotalCandidates] = useState(0);
   const [recording, setRecording] = useState(false);
 
   const examples = lang === "th"
     ? ["ลด cost call center ด้วย AI", "อยากทำ chatbot ภาษาไทย", "หา cloud ที่ราคาถูกลง", "ต้องการระบบ HR อัตโนมัติ"]
     : ["Reduce call center cost with AI", "Build a Thai chatbot", "Cheaper cloud provider", "HR automation"];
 
-  const submit = () => {
+  const submit = async () => {
     if (!pain.trim()) return toast.error(lang === "th" ? "กรุณาเล่า pain ของคุณ" : "Please describe your pain");
-    setLoading(true); setResults(null);
-    setTimeout(() => { setResults(sampleMatches(pain)); setLoading(false); }, 1100);
+    setLoading(true);
+    setResults(null);
+    try {
+      const res = await findBooth(eventRef, pain);
+      setResults(res.matches);
+      setTotalCandidates(res.total_candidates);
+      if (res.matched === 0 && res.total_candidates > 0) {
+        toast(lang === "th"
+          ? `ไม่พบ booth ตรง pain ใน "${eventRef.name}" — แสดง booth ทั้งหมดใน event นี้แทน`
+          : `No exact match in "${eventRef.name}" — showing all booths from this event`,
+        );
+      } else if (res.total_candidates === 0) {
+        toast(lang === "th" ? "ยังไม่มี exhibitor ในงานนี้" : "No exhibitors in this event yet");
+      }
+    } catch (err) {
+      toast.error(lang === "th" ? `ค้นหาไม่สำเร็จ: ${(err as Error).message}` : `Search failed: ${(err as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -242,7 +271,115 @@ function FindBooth() {
         <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full" />)}</div>
       )}
 
-      {results && <ResultsView results={results} />}
+      {results && results.length === 0 && !loading && (
+        <Card className="p-12 text-center border-dashed">
+          <Sparkles className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+          <p className="text-sm font-medium">{lang === "th" ? "ยังไม่มี exhibitor ในงานนี้" : "No exhibitors in this event yet"}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {lang === "th"
+              ? "ลองเลือก event อื่นที่หน้า Events"
+              : "Try picking another event from the Events page"}
+          </p>
+        </Card>
+      )}
+
+      {results && results.length > 0 && (
+        <>
+          <p className="text-xs text-muted-foreground -mb-2 px-1">
+            {lang === "th"
+              ? `แสดง ${results.length} จาก ${totalCandidates} booth ใน "${eventRef.name}"`
+              : `Showing ${results.length} of ${totalCandidates} booths in "${eventRef.name}"`}
+          </p>
+          <ApiResultsView results={results} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * ResultsView for real API matches (from edge function find-booth).
+ * Different shape from the legacy mock (no logo/hall/booth/extras object).
+ */
+function ApiResultsView({ results }: { results: BoothMatch[] }) {
+  const { lang } = useI18n();
+  return (
+    <div className="space-y-3">
+      {results.map((m) => {
+        const lineOa = m.social_links?.line_oa;
+        return (
+          <Card key={`${m.booth_id}-${m.company}`} className="p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 shrink-0 rounded-lg border bg-muted/30 grid place-items-center">
+                {m.logo_url ? (
+                  <img src={m.logo_url} alt={m.company} className="h-full w-full object-contain rounded" />
+                ) : (
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <h3 className="font-semibold leading-tight">{m.company}</h3>
+                    <div className="text-xs text-muted-foreground font-mono mt-0.5">Booth {m.booth_id}</div>
+                  </div>
+                  <Badge className="bg-emerald-500 text-white border-0 shrink-0">
+                    {m.score}% match
+                  </Badge>
+                </div>
+                {m.description && (
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{m.description}</p>
+                )}
+                {m.reasons.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {m.reasons.slice(0, 4).map((r) => (
+                      <Badge key={r} variant="outline" className="text-[10px] py-0">
+                        {r}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                {(m.tags ?? []).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {m.tags?.slice(0, 5).map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-[10px] py-0">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-center gap-3 mt-3 text-xs">
+                  {m.contact_email && (
+                    <a href={`mailto:${m.contact_email}`} className="flex items-center gap-1 text-muted-foreground hover:text-primary">
+                      <Mail className="h-3.5 w-3.5" />Email
+                    </a>
+                  )}
+                  {m.website && (
+                    <a href={m.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-muted-foreground hover:text-primary">
+                      <Globe className="h-3.5 w-3.5" />Website
+                    </a>
+                  )}
+                  {lineOa && (
+                    <a
+                      href={`https://line.me/R/ti/p/${encodeURIComponent(lineOa)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-medium"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />{lineOa}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+        );
+      })}
+      <p className="text-xs text-center text-muted-foreground pt-2">
+        {lang === "th"
+          ? "💡 ผลลัพธ์มาจาก booth ใน event นี้เท่านั้น (จำกัด scope ที่ backend)"
+          : "💡 Results only from booths in this event (scope enforced server-side)"}
+      </p>
     </div>
   );
 }
@@ -494,24 +631,39 @@ function FloorMap({ hall, booth }: { hall: string; booth: string }) {
 }
 
 interface Msg { role: "user" | "bot"; text: string; }
-function AskEvent() {
+function AskEvent({ eventRef }: { eventRef: EventRef }) {
   const { lang, t } = useI18n();
-  const [msgs, setMsgs] = useState<Msg[]>([
-    { role: "bot", text: lang === "th" ? "สวัสดีค่ะ ฉันช่วยตอบคำถามเกี่ยวกับงานนี้ได้ ลองถามดูสิคะ" : "Hi! I can answer anything about this event. Try asking!" }
-  ]);
+  const greeting = lang === "th"
+    ? `สวัสดีค่ะ! ฉันตอบคำถามเกี่ยวกับ "${eventRef.name}" ได้ค่ะ\n\nลองถามดู เช่น:\n• งานนี้จัดที่ไหน?\n• เริ่มวันไหน?\n• มี booth เกี่ยวกับ AI ไหม?\n• ในงานนี้มีบริษัทเกี่ยวกับ payment ไหม?`
+    : `Hi! I can answer anything about "${eventRef.name}".\n\nTry asking:\n• Where is this event?\n• When does it start?\n• Any booth about AI here?\n• Any payment companies in this event?`;
+  const [msgs, setMsgs] = useState<Msg[]>([{ role: "bot", text: greeting }]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, thinking]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
-    setMsgs(m => [...m, { role: "user", text }]); setInput(""); setThinking(true);
-    setTimeout(() => {
-      const match = faqs.find(f => pickBilingual(f.q, lang).includes(text.slice(0,5)) || text.toLowerCase().includes(f.q.en.toLowerCase().slice(0,5)));
-      const reply = match ? pickBilingual(match.a, lang) : (lang === "th" ? "ขออภัย ฉันยังไม่มีข้อมูลนั้นค่ะ ลองคลิก 'ถามทีมงาน' ได้เลย" : "I don't have that info yet. Try 'Ask staff'.");
-      setMsgs(m => [...m, { role: "bot", text: reply }]); setThinking(false);
-    }, 800);
+    setMsgs((m) => [...m, { role: "user", text }]);
+    setInput("");
+    setThinking(true);
+    try {
+      const res = await askEvent(eventRef, text);
+      setMsgs((m) => [...m, { role: "bot", text: res.reply }]);
+    } catch (err) {
+      const msg = (err as Error).message;
+      setMsgs((m) => [
+        ...m,
+        {
+          role: "bot",
+          text: lang === "th"
+            ? `ขออภัยค่ะ มีปัญหาในการตอบ: ${msg}`
+            : `Sorry, something went wrong: ${msg}`,
+        },
+      ]);
+    } finally {
+      setThinking(false);
+    }
   };
 
   return (
