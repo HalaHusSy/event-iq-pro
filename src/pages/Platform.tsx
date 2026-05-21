@@ -973,7 +973,7 @@ function BotManager({ event }: { event: EventRow | null }) {
           <Input
             value={lineOaName}
             onChange={(e) => setLineOaName(e.target.value)}
-            placeholder="EventIQ Assistant"
+            placeholder="YouWalk Assistant"
           />
         </div>
         <Button

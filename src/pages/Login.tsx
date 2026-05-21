@@ -119,7 +119,7 @@ export default function Login() {
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 backdrop-blur shadow-md">
             <Sparkles className="h-5 w-5" />
           </div>
-          EventIQ
+          YOU WALK I FIND
         </Link>
 
         <div className="relative flex-1 flex flex-col justify-center max-w-md">
@@ -169,7 +169,7 @@ export default function Login() {
               <div className="inline-grid h-12 w-12 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow mb-3">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h2 className="text-2xl font-bold">EventIQ</h2>
+              <h2 className="text-2xl font-bold tracking-tight">YOU WALK I FIND</h2>
             </div>
 
             <div className="mb-6">
