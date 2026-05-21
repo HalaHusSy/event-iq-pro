@@ -16,6 +16,7 @@ type DisplayEvent = {
   id: string;
   name: string;
   cover: string;
+  bannerUrl: string | null;
   venue: string;
   startDate: string;
   endDate: string;
@@ -72,9 +73,22 @@ function EventCard({ e }: { e: DisplayEvent }) {
   return (
     <Card className="glass overflow-hidden hover:shadow-elegant transition-all hover:-translate-y-1 duration-300 group">
       <div className="aspect-[16/7] bg-gradient-primary grid place-items-center text-7xl relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-        <span className="relative z-10">{e.cover}</span>
-        <Badge className={`absolute top-3 right-3 ${statusColor} text-white border-0 gap-1.5`}>
+        {e.bannerUrl ? (
+          <img
+            src={e.bannerUrl}
+            alt={e.name}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            loading="lazy"
+            onError={(ev) => {
+              // If image fails, hide it so the emoji shows through
+              ev.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10 blur-2xl group-hover:scale-150 transition-transform duration-700" />
+        )}
+        {!e.bannerUrl && <span className="relative z-10">{e.cover}</span>}
+        <Badge className={`absolute top-3 right-3 ${statusColor} text-white border-0 gap-1.5 z-10`}>
           {e.status === "live" && (
             <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
           )}
@@ -155,6 +169,7 @@ export default function Events() {
         id: e.id,
         name: e.name,
         cover: pickCover(e.name),
+        bannerUrl: e.banner_url ?? null,
         venue: e.location ?? "",
         startDate: e.start_date ?? "",
         endDate: e.end_date ?? "",

@@ -166,6 +166,7 @@ function MyEvents({ organizerId }: { organizerId: string }) {
   const [end, setEnd] = useState("");
   const [status, setStatus] = useState("upcoming");
   const [floorPlanUrl, setFloorPlanUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
 
   const exhibitorCountByEvent = useMemo(() => {
     const map = new Map<string, number>();
@@ -195,7 +196,10 @@ function MyEvents({ organizerId }: { organizerId: string }) {
         endDate: end || undefined,
         status,
       });
-      if (floorPlanUrl) await updateEvent(ev.id, { floor_plan_url: floorPlanUrl });
+      const patch: Record<string, string> = {};
+      if (floorPlanUrl) patch.floor_plan_url = floorPlanUrl;
+      if (bannerUrl) patch.banner_url = bannerUrl;
+      if (Object.keys(patch).length > 0) await updateEvent(ev.id, patch);
       return ev;
     },
     onSuccess: () => {
@@ -204,7 +208,7 @@ function MyEvents({ organizerId }: { organizerId: string }) {
       qc.invalidateQueries({ queryKey: ["platform_stats"] });
       toast.success("สร้าง event สำเร็จ");
       setOpen(false);
-      setName(""); setDescription(""); setLocation(""); setStart(""); setEnd(""); setFloorPlanUrl("");
+      setName(""); setDescription(""); setLocation(""); setStart(""); setEnd(""); setFloorPlanUrl(""); setBannerUrl("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -309,6 +313,29 @@ function MyEvents({ organizerId }: { organizerId: string }) {
                       <SelectItem value="past">Past</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label>Banner / Cover Image URL (optional)</Label>
+                  <Input
+                    value={bannerUrl}
+                    onChange={(e) => setBannerUrl(e.target.value)}
+                    placeholder="https://.../event-banner.jpg"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    รูปจะใช้แทน emoji ในการ์ด event หน้า /events (16:7 aspect ratio แนะนำ)
+                  </p>
+                  {bannerUrl && (
+                    <div className="mt-2 aspect-[16/7] rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={bannerUrl}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label>Floor Plan URL (optional)</Label>
@@ -472,6 +499,7 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
   const [productInfo, setProductInfo] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [website, setWebsite] = useState("");
+  const [lineOa, setLineOa] = useState("");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -497,6 +525,7 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
         productInfo: productInfo || undefined,
         contactEmail: contactEmail || undefined,
         website: website || undefined,
+        lineOa: lineOa || undefined,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["exhibitors"] });
@@ -505,7 +534,7 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
       toast.success("เพิ่ม exhibitor สำเร็จ");
       setOpen(false);
       setEventId(""); setBoothId(""); setCompany(""); setUserId("none");
-      setDescription(""); setProductInfo(""); setContactEmail(""); setWebsite("");
+      setDescription(""); setProductInfo(""); setContactEmail(""); setWebsite(""); setLineOa("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -630,6 +659,17 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
                     <Label>Website</Label>
                     <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." />
                   </div>
+                </div>
+                <div>
+                  <Label>LINE Official Account (optional)</Label>
+                  <Input
+                    value={lineOa}
+                    onChange={(e) => setLineOa(e.target.value)}
+                    placeholder="@yourcompany"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    LINE OA ID เพื่อให้ visitor ติดต่อบริษัทโดยตรง
+                  </p>
                 </div>
               </div>
               <DialogFooter>

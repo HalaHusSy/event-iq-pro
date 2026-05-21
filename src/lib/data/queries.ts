@@ -200,8 +200,11 @@ export async function createExhibitor(input: {
   productInfo?: string;
   contactEmail?: string;
   website?: string;
+  lineOa?: string;
 }) {
   const { data: { user } } = await withTimeout(supabase.auth.getUser(), 10000, "Get session");
+  const socialLinks: Record<string, string> = {};
+  if (input.lineOa) socialLinks.line_oa = input.lineOa;
   const { data, error } = await withTimeout(
     supabase
       .from("exhibitors")
@@ -214,6 +217,7 @@ export async function createExhibitor(input: {
         product_info: input.productInfo ?? null,
         contact_email: input.contactEmail ?? null,
         website: input.website ?? null,
+        social_links: Object.keys(socialLinks).length > 0 ? socialLinks : {},
         created_by: user?.id ?? null,
       })
       .select()

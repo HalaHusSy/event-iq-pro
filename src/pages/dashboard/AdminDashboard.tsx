@@ -615,6 +615,7 @@ function AllExhibitors() {
   const [productInfo, setProductInfo] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [website, setWebsite] = useState("");
+  const [lineOa, setLineOa] = useState("");
 
   const linkable = profiles.filter((p) => p.role === "exhibitor" || p.role === "visitor");
 
@@ -629,6 +630,7 @@ function AllExhibitors() {
         productInfo: productInfo || undefined,
         contactEmail: contactEmail || undefined,
         website: website || undefined,
+        lineOa: lineOa || undefined,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["exhibitors"] });
@@ -636,7 +638,7 @@ function AllExhibitors() {
       toast.success("เพิ่ม exhibitor สำเร็จ");
       setOpen(false);
       setEventId(""); setBoothId(""); setCompany(""); setUserId("none");
-      setDescription(""); setProductInfo(""); setContactEmail(""); setWebsite("");
+      setDescription(""); setProductInfo(""); setContactEmail(""); setWebsite(""); setLineOa("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -743,6 +745,17 @@ function AllExhibitors() {
                     <Label>Website</Label>
                     <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." />
                   </div>
+                </div>
+                <div>
+                  <Label>LINE Official Account (optional)</Label>
+                  <Input
+                    value={lineOa}
+                    onChange={(e) => setLineOa(e.target.value)}
+                    placeholder="@yourcompany"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    LINE OA ID เพื่อให้ visitor ติดต่อบริษัทโดยตรง
+                  </p>
                 </div>
               </div>
               <DialogFooter>
