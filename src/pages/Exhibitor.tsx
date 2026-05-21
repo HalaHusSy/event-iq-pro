@@ -84,10 +84,12 @@ export default function Exhibitor() {
     product_info: "",
     promotion: "",
     tags: "",
+    line_oa: "",
   });
 
   useEffect(() => {
     if (booth) {
+      const social = (booth.social_links ?? {}) as Record<string, string>;
       setForm({
         company_name: booth.company_name ?? "",
         website: booth.website ?? "",
@@ -95,6 +97,7 @@ export default function Exhibitor() {
         product_info: booth.product_info ?? "",
         promotion: booth.promotion ?? "",
         tags: (booth.tags ?? []).join(", "),
+        line_oa: social.line_oa ?? "",
       });
     }
   }, [booth?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -102,12 +105,17 @@ export default function Exhibitor() {
   const save = useMutation({
     mutationFn: async () => {
       if (!booth) throw new Error("Booth not loaded yet — please retry");
+      const existingSocial = (booth.social_links ?? {}) as Record<string, string>;
+      const social: Record<string, string> = { ...existingSocial };
+      if (form.line_oa) social.line_oa = form.line_oa;
+      else delete social.line_oa;
       return updateExhibitor(booth.id, {
         company_name: form.company_name,
         website: form.website || null,
         description: form.description || null,
         product_info: form.product_info || null,
         promotion: form.promotion || null,
+        social_links: social,
         tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
       });
     },
@@ -276,6 +284,22 @@ export default function Exhibitor() {
                   onChange={(e) => setForm({ ...form, website: e.target.value })}
                   placeholder="https://"
                 />
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  LINE Official Account
+                </label>
+                <Input
+                  className="mt-1.5"
+                  value={form.line_oa}
+                  onChange={(e) => setForm({ ...form, line_oa: e.target.value })}
+                  placeholder="@yourcompany"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {lang === "th"
+                    ? "LINE OA ID ของบริษัท เพื่อให้ visitor ติดต่อตรงได้"
+                    : "Company LINE OA so visitors can contact directly"}
+                </p>
               </div>
             </>
           )}
