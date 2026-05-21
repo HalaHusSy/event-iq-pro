@@ -445,7 +445,7 @@ function OrganizerRow({ organizer }: { organizer: Awaited<ReturnType<typeof list
               <KeyRound className="h-3.5 w-3.5 mr-2" /> Reset password
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(o.id) && toast("Copied organizer ID")}>
+            <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(o.id); toast("Copied organizer ID"); }}>
               Copy organizer ID
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -562,7 +562,7 @@ function AllEvents() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => navigator.clipboard.writeText(e.id) && toast("Copied event ID")}
+                        onClick={() => { navigator.clipboard.writeText(e.id); toast("Copied event ID"); }}
                       >
                         Copy event ID
                       </DropdownMenuItem>

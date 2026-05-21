@@ -690,7 +690,7 @@ function MyExhibitors({ organizerId }: { organizerId: string }) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => navigator.clipboard.writeText(x.id) && toast("Copied exhibitor ID")}
+                        onClick={() => { navigator.clipboard.writeText(x.id); toast("Copied exhibitor ID"); }}
                       >
                         Copy ID
                       </DropdownMenuItem>

@@ -35,6 +35,7 @@ export type Database = {
           avatar_url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       organizers: {
         Row: {
@@ -57,6 +58,7 @@ export type Database = {
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["organizers"]["Insert"]>;
+        Relationships: [];
       };
       events: {
         Row: {
@@ -87,6 +89,7 @@ export type Database = {
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
+        Relationships: [];
       };
       announcements: {
         Row: {
@@ -104,6 +107,7 @@ export type Database = {
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["announcements"]["Insert"]>;
+        Relationships: [];
       };
       leads: {
         Row: {
@@ -125,6 +129,7 @@ export type Database = {
           source?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["leads"]["Insert"]>;
+        Relationships: [];
       };
       platform_settings: {
         Row: {
@@ -139,6 +144,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["platform_settings"]["Insert"]>;
+        Relationships: [];
       };
       exhibitors: {
         Row: {
@@ -177,6 +183,7 @@ export type Database = {
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["exhibitors"]["Insert"]>;
+        Relationships: [];
       };
       audit_logs: {
         Row: {
@@ -198,8 +205,10 @@ export type Database = {
           metadata?: Json;
         };
         Update: Partial<Database["public"]["Tables"]["audit_logs"]["Insert"]>;
+        Relationships: [];
       };
     };
+    Views: Record<never, never>;
     Functions: {
       admin_update_user_role: {
         Args: { p_user_id: string; p_role: AppRole };
@@ -209,6 +218,17 @@ export type Database = {
         Args: { p_user_id: string };
         Returns: void;
       };
+      admin_create_organizer: {
+        Args: {
+          p_user_id: string;
+          p_company_name: string;
+          p_package: string;
+          p_contact_email: string | null;
+          p_contact_phone: string | null;
+        };
+        Returns: string;
+      };
+      bootstrap_first_root: { Args: Record<string, never>; Returns: void };
       can_access_exhibitor_leads: {
         Args: { p_exhibitor_id: string };
         Returns: boolean;
@@ -217,6 +237,7 @@ export type Database = {
       current_organizer_id: { Args: Record<string, never>; Returns: string };
       is_root_or_admin: { Args: Record<string, never>; Returns: boolean };
       is_organizer_of_event: { Args: { p_event_id: string }; Returns: boolean };
+      platform_stats: { Args: Record<string, never>; Returns: Record<string, number> };
     };
     Enums: { app_role: AppRole };
   };

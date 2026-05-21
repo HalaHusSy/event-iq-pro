@@ -12,8 +12,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n";
 import { Match, sampleMatches, faqs } from "@/lib/mock";
+
+// Mock content is bilingual th/en only — fall back to English when an extra
+// UI language (zh/fr/vi/ja) is picked. Avoids TS7053 from indexing Lang into
+// a {th, en} dict.
+const pickBilingual = (entry: { th: string; en: string }, lang: Lang): string =>
+  lang === "th" ? entry.th : entry.en;
 import { PLATFORM_EVENTS } from "@/lib/mock/events";
 import { listEvents } from "@/lib/data/queries";
 import { toast } from "sonner";
@@ -397,7 +403,7 @@ function ResultsView({ results }: { results: Match[] }) {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <p className="text-sm leading-relaxed">{m.reason[lang]}</p>
+                        <p className="text-sm leading-relaxed">{pickBilingual(m.reason, lang)}</p>
                         <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                           <div className="p-2 rounded bg-background/60"><div className="text-muted-foreground">Pain alignment</div><div className="font-mono font-semibold">{Math.min(99, m.score + 4)}%</div></div>
                           <div className="p-2 rounded bg-background/60"><div className="text-muted-foreground">Tag overlap</div><div className="font-mono font-semibold">{Math.max(40, m.score - 12)}%</div></div>
@@ -495,8 +501,8 @@ function AskEvent() {
     if (!text.trim()) return;
     setMsgs(m => [...m, { role: "user", text }]); setInput(""); setThinking(true);
     setTimeout(() => {
-      const match = faqs.find(f => f.q[lang].includes(text.slice(0,5)) || text.toLowerCase().includes(f.q.en.toLowerCase().slice(0,5)));
-      const reply = match ? match.a[lang] : (lang === "th" ? "ขออภัย ฉันยังไม่มีข้อมูลนั้นค่ะ ลองคลิก 'ถามทีมงาน' ได้เลย" : "I don't have that info yet. Try 'Ask staff'.");
+      const match = faqs.find(f => pickBilingual(f.q, lang).includes(text.slice(0,5)) || text.toLowerCase().includes(f.q.en.toLowerCase().slice(0,5)));
+      const reply = match ? pickBilingual(match.a, lang) : (lang === "th" ? "ขออภัย ฉันยังไม่มีข้อมูลนั้นค่ะ ลองคลิก 'ถามทีมงาน' ได้เลย" : "I don't have that info yet. Try 'Ask staff'.");
       setMsgs(m => [...m, { role: "bot", text: reply }]); setThinking(false);
     }, 800);
   };
@@ -524,8 +530,8 @@ function AskEvent() {
         <div className="border-t p-3">
           <div className="flex flex-wrap gap-1.5 mb-2">
             {faqs.map(f => (
-              <button key={f.q.en} onClick={() => send(f.q[lang])} className="text-xs px-2.5 py-1 rounded-full bg-secondary hover:bg-accent-soft transition-colors">
-                {f.q[lang]}
+              <button key={f.q.en} onClick={() => send(pickBilingual(f.q, lang))} className="text-xs px-2.5 py-1 rounded-full bg-secondary hover:bg-accent-soft transition-colors">
+                {pickBilingual(f.q, lang)}
               </button>
             ))}
           </div>

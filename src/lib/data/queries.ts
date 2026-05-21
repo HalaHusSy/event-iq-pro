@@ -1,14 +1,26 @@
 import { supabase } from "@/lib/supabase/client";
-import type { AppRole, Exhibitor, Json } from "@/lib/supabase/types";
+import type {
+  AppRole,
+  Database,
+  Exhibitor,
+  Json,
+} from "@/lib/supabase/types";
+
+type EventUpdate = Database["public"]["Tables"]["events"]["Update"];
+type ExhibitorUpdate = Database["public"]["Tables"]["exhibitors"]["Update"];
 
 /**
  * Wrap a promise with a timeout. Rejects with a friendly error if the
  * operation doesn't complete in time (typically: browser extension blocking,
  * network hung, or VPN issue).
  */
-function withTimeout<T>(promise: Promise<T>, ms = 15000, opName = "Request"): Promise<T> {
+function withTimeout<T>(
+  promise: PromiseLike<T>,
+  ms = 15000,
+  opName = "Request",
+): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<T>((_, reject) =>
       setTimeout(
         () =>
@@ -161,7 +173,7 @@ export async function createEvent(input: {
   return data;
 }
 
-export async function updateEvent(id: string, patch: Record<string, unknown>) {
+export async function updateEvent(id: string, patch: EventUpdate) {
   const { error } = await withTimeout(
     supabase.from("events").update(patch).eq("id", id),
     15000,
@@ -222,7 +234,7 @@ export async function createExhibitor(input: {
   return data;
 }
 
-export async function updateExhibitor(id: string, patch: Record<string, unknown>) {
+export async function updateExhibitor(id: string, patch: ExhibitorUpdate) {
   const { error } = await withTimeout(
     supabase.from("exhibitors").update(patch).eq("id", id),
     15000,
@@ -348,7 +360,7 @@ export async function upsertPlatformSetting(key: string, value: Json) {
   const { data: { user } } = await supabase.auth.getUser();
   const { error } = await supabase
     .from("platform_settings")
-    .upsert({ key, value, updated_by: user?.id ?? null, updated_at: new Date().toISOString() });
+    .upsert({ key, value, updated_by: user?.id ?? null });
   if (error) throw error;
 }
 

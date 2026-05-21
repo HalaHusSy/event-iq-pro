@@ -28,7 +28,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recha
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { supabase } from "@/lib/supabase/client";
-import { listMyExhibitors, listLeads, updateExhibitor } from "@/lib/data/queries";
+import { getMyExhibitor, listMyExhibitors, listLeads, updateExhibitor } from "@/lib/data/queries";
 import {
   Select,
   SelectContent,
@@ -432,7 +432,7 @@ function BoothDashboard({
 
   // Top tags from booth.tags as keywords (real data)
   const tagData = useMemo(
-    () => (booth.tags ?? []).slice(0, 8).map((t, i) => ({ word: t, count: (booth.tags?.length ?? 1) - i })),
+    () => (booth.tags ?? []).slice(0, 8).map((t: string, i: number) => ({ word: t, count: (booth.tags?.length ?? 1) - i })),
     [booth.tags]
   );
 
