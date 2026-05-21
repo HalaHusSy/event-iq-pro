@@ -100,21 +100,44 @@ export function BotnoiWidget({
     chat.setAttribute('default_open', String(defaultOpen));
     if (botLogo) chat.setAttribute('bot_logo', botLogo);
 
-    // 3) inject SDK once
-    if (!document.getElementById('bn-jssdk')) {
+    // 3) inject SDK once — with timeout + graceful failure
+    const existingScript = document.getElementById('bn-jssdk') as HTMLScriptElement | null;
+    if (!existingScript) {
       const js = document.createElement('script');
       js.id = 'bn-jssdk';
       js.src = 'https://console.botnoi.ai/customerchat/index.js';
       js.async = true;
-      js.onerror = () => console.warn('[Botnoi] SDK failed to load — widget disabled');
+
+      // Mark as failed permanently so we don't waste time re-trying on every nav
+      const markFailed = (reason: string) => {
+        js.setAttribute('data-failed', '1');
+        hideWidget();
+        // Use console.info (not error) — Botnoi outages are not OUR app's fault
+        console.info(`[Botnoi] widget disabled: ${reason}`);
+      };
+
+      js.onerror = () => markFailed('SDK script failed to load (likely Botnoi server down or blocked)');
       js.onload = () => {
         try {
           window.BN?.init({ version: '1.0' });
         } catch (err) {
-          console.warn('[Botnoi] init failed', err);
+          markFailed(`init threw: ${err instanceof Error ? err.message : String(err)}`);
         }
       };
+
+      // 10-second timeout — if SDK doesn't load by then, give up
+      const loadTimeout = setTimeout(() => {
+        if (!window.BN && !js.getAttribute('data-failed')) {
+          markFailed('SDK load timeout (10s)');
+        }
+      }, 10000);
+      js.addEventListener('load', () => clearTimeout(loadTimeout));
+      js.addEventListener('error', () => clearTimeout(loadTimeout));
+
       document.body.appendChild(js);
+    } else if (existingScript.getAttribute('data-failed') === '1') {
+      // Previous load failed — keep widget hidden, don't retry
+      hideWidget();
     } else if (window.BN) {
       try {
         window.BN.init({ version: '1.0' });
