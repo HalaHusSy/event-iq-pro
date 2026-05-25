@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>EventIQ — Pitch Deck</title>
+<style>
+  @font-face { font-family:'Plex'; font-weight:400; src:url('fonts/PlexThai-Regular.ttf'); }
+  @font-face { font-family:'Plex'; font-weight:600; src:url('fonts/PlexThai-SemiBold.ttf'); }
+  @font-face { font-family:'Plex'; font-weight:700; src:url('fonts/PlexThai-Bold.ttf'); }
+  @font-face { font-family:'PlexMono'; font-weight:500; src:url('fonts/PlexMono-Medium.ttf'); }
+
+  :root{
+    --ink:#37291b;            /* deep brown */
+    --ink-soft:#6b5a47;       /* muted brown */
+    --gold:#d4920f;           /* honey gold */
+    --gold-light:#f0b840;
+    --brown:#a8662e;          /* tawny */
+    --cream:#faf4e8;
+    --card:#fffdf7;
+    --border:#e6d9c2;
+    --line:#ece1cd;
+  }
+  @page{ size:13.333in 7.5in; margin:0; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ font-family:'Plex',sans-serif; color:var(--ink); }
+
+  .slide{
+    width:1280px; height:720px; position:relative; overflow:hidden;
+    background:var(--cream); padding:60px 76px 70px;
+    break-inside:avoid; page-break-inside:avoid;
+  }
+  .slide + .slide{ page-break-before:always; }
+  .slide.center{ display:flex; flex-direction:column; }
+  .deck{ counter-reset:s; }
+  .slide{ counter-increment:s; }
+
+  /* footer band */
+  .slide::after{
+    content:""; position:absolute; left:0; right:0; bottom:0; height:8px;
+    background:linear-gradient(90deg,var(--gold),var(--brown));
+  }
+  .foot{ position:absolute; left:76px; right:76px; bottom:24px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; color:var(--ink-soft); }
+  .foot .brand{ font-weight:700; letter-spacing:.04em; }
+  .foot .brand b{ color:var(--gold); }
+  .foot .pg::before{ content:counter(s); }
+  .mono{ font-family:'PlexMono',monospace; }
+
+  /* section eyebrow */
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-family:'PlexMono',monospace;
+    font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--brown);
+    border:1px solid var(--border); background:var(--card); padding:6px 12px; border-radius:999px;
+    align-self:flex-start; }
+  .dot{ width:7px;height:7px;border-radius:50%;background:var(--gold); display:inline-block; }
+
+  h1.title{ font-size:40px; font-weight:700; line-height:1.12; margin-top:18px; letter-spacing:-.01em; }
+  h1.title .sub{ display:block; font-size:21px; font-weight:600; color:var(--ink-soft); margin-top:8px; }
+  .lead{ font-size:18px; color:var(--ink-soft); margin-top:14px; max-width:1000px; line-height:1.5; }
+
+  /* generic helpers */
+  .grow{ display:none; }
+  .gap-s{ height:22px; }
+  .gap-m{ height:34px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+  .grid4{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 24px;
+    box-shadow:0 6px 18px -10px rgba(55,41,27,.18); }
+  .card h3{ font-size:19px; font-weight:700; }
+  .card .th{ font-size:14px; color:var(--ink-soft); font-weight:600; }
+  .card p{ font-size:15px; color:var(--ink-soft); line-height:1.5; margin-top:8px; }
+  .num-badge{ width:42px;height:42px;border-radius:12px; display:flex;align-items:center;justify-content:center;
+    color:#fff; font-family:'PlexMono',monospace; font-weight:500; font-size:18px;
+    background:linear-gradient(135deg,var(--gold),var(--brown)); }
+
+  ul.bul{ list-style:none; margin-top:10px; }
+  ul.bul li{ position:relative; padding-left:22px; margin-bottom:12px; font-size:16px; line-height:1.45; color:var(--ink); }
+  ul.bul li::before{ content:""; position:absolute; left:0; top:8px; width:9px;height:9px;border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),var(--brown)); }
+  ul.bul li b{ font-weight:700; }
+  ul.bul li span{ color:var(--ink-soft); font-size:14.5px; }
+
+  /* COVER */
+  .cover{ justify-content:center; align-items:flex-start;
+    background:
+      radial-gradient(ellipse at 78% 18%, rgba(212,146,15,.20), transparent 55%),
+      radial-gradient(ellipse at 12% 92%, rgba(168,102,46,.16), transparent 55%),
+      var(--cream); }
+  .cover .logo{ font-size:84px; font-weight:700; letter-spacing:-.02em; color:var(--brown); }
+  .cover .walk{ font-family:'PlexMono',monospace; font-size:20px; letter-spacing:.32em; color:var(--brown); margin-top:2px; }
+  .cover .tag{ font-size:34px; font-weight:700; line-height:1.15; margin-top:30px; max-width:980px; }
+  .cover .tagth{ font-size:22px; font-weight:600; color:var(--ink-soft); margin-top:12px; }
+  .cover .meta{ position:absolute; bottom:56px; left:76px; right:76px; display:flex; justify-content:space-between; align-items:flex-end;
+    font-size:15px; color:var(--ink-soft); }
+  .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:999px;
+    background:var(--card); border:1px solid var(--border); font-weight:600; font-size:14px; }
+
+  /* stat tiles */
+  .stat{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px; text-align:center; }
+  .stat .v{ font-family:'PlexMono',monospace; font-weight:500; font-size:46px; line-height:1; color:var(--brown); }
+  .stat .k{ font-size:13.5px; color:var(--ink-soft); margin-top:12px; text-transform:uppercase; letter-spacing:.06em; }
+
+  /* architecture diagram */
+  .layer{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 18px; }
+  .layer .lh{ font-size:13px; font-family:'PlexMono',monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--brown); margin-bottom:10px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{ font-size:13.5px; padding:6px 12px; border-radius:8px; background:var(--cream); border:1px solid var(--border); color:var(--ink); font-weight:600; }
+  .arrow{ text-align:center; color:var(--brown); font-size:22px; line-height:1; margin:6px 0; }
+
+  .two-col-text{ display:grid; grid-template-columns:1fr 1fr; gap:30px 40px; }
+
+  table.uc{ width:100%; border-collapse:collapse; margin-top:6px; }
+  table.uc th{ text-align:left; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--brown); padding:10px 12px; border-bottom:2px solid var(--border); }
+  table.uc td{ font-size:15px; padding:11px 12px; border-bottom:1px solid var(--line); color:var(--ink); vertical-align:top; }
+  table.uc td .s{ color:var(--ink-soft); font-size:13.5px; }
+  table.uc tr:last-child td{ border-bottom:none; }
+  .tag-mini{ font-family:'PlexMono',monospace; font-size:12.5px; color:#fff; background:linear-gradient(135deg,var(--gold),var(--brown)); padding:3px 8px; border-radius:6px; }
+
+  .closing{ background:
+      radial-gradient(ellipse at 80% 80%, rgba(212,146,15,.18), transparent 55%),
+      radial-gradient(ellipse at 15% 10%, rgba(168,102,46,.14), transparent 55%),
+      var(--cream); justify-content:center; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- 1. COVER -->
+  <section class="slide center cover">
+    <div class="logo">EventIQ</div>
+    <div class="walk">YOU&nbsp;WALK&nbsp;·&nbsp;I&nbsp;FIND</div>
+    <div class="tag">Find the right booth in 15&nbsp;seconds — not 3&nbsp;hours.</div>
+    <div class="tagth">หาบูธที่ใช่ใน 15 วินาที ไม่ใช่ 3 ชั่วโมง · แพลตฟอร์ม AI สำหรับงานนิทรรศการสด</div>
+    <div class="meta">
+      <div>
+        <div class="pill"><span class="dot"></span> Powered by Botnoi&nbsp;AI</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700;color:var(--ink)">Project Pitch · นำเสนอโครงการ</div>
+        <div class="mono" style="margin-top:4px">2026</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. OUTLINE -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> Outline · สารบัญ</div>
+    <h1 class="title">หัวข้อการนำเสนอ<span class="sub">Presentation Outline</span></h1>
+    <div class="grow"></div>
+    <div class="grid2" style="gap:16px 34px">
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">01</div><div><b>ปัญหาและแรงจูงใจ</b><div class="th">Problem &amp; Motivation</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">05</div><div><b>ความปลอดภัย &amp; Multi-tenant</b><div class="th">Security &amp; Multi-tenancy</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">02</div><div><b>กลุ่มผู้ใช้และผู้มีส่วนได้ส่วนเสีย</b><div class="th">Users &amp; Stakeholders</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">06</div><div><b>กรณีศึกษาและผลลัพธ์</b><div class="th">Use Cases &amp; Results</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">03</div><div><b>โซลูชันและหลักการทำงาน</b><div class="th">Solution &amp; How It Works</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">07</div><div><b>นวัตกรรมและแผนต่อยอด</b><div class="th">Novelty &amp; Roadmap</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">04</div><div><b>สถาปัตยกรรมและระเบียบวิธี AI</b><div class="th">Architecture &amp; AI Methodology</div></div></div>
+      <div style="display:flex;gap:16px;align-items:center"><div class="num-badge">08</div><div><b>สรุปและถาม–ตอบ</b><div class="th">Conclusion &amp; Q&amp;A</div></div></div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 3. PROBLEM -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 01 · Problem &amp; Motivation</div>
+    <h1 class="title">ปัญหา: งานนิทรรศการใหญ่ แต่หา “สิ่งที่ใช่” ยาก<span class="sub">Big exhibitions, hard to find what matters</span></h1>
+    <div class="grow"></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>ผู้เข้าชม · Visitors</h3>
+        <ul class="bul">
+          <li>เสียเวลาเดินหาบูธที่เกี่ยวข้องนานถึง <b>~3 ชั่วโมง</b> <span>— wander up to 3 hrs to find relevant booths</span></li>
+          <li>ข้อมูลกระจัดกระจาย: ตาราง แผนผัง โซนอาหาร การเดินทาง <span>— schedule, maps, food, transport scattered across leaflets &amp; staff</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>ผู้ออกบูธและผู้จัดงาน · Exhibitors &amp; Organizers</h3>
+        <ul class="bul">
+          <li>ผู้ออกบูธได้ traffic แบบสุ่ม → <b>ลีดคุณภาพต่ำ วัด ROI ยาก</b> <span>— random foot traffic, low-quality leads</span></li>
+          <li>ผู้จัดงานขาดข้อมูล <b>real-time</b> เรื่องความต้องการของผู้เข้าชม <span>— no real-time view of attendee intent &amp; booth performance</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="grid3" style="gap:16px">
+      <div class="stat"><div class="v">3 ชม.</div><div class="k">เวลาที่เสียไป · Time wasted</div></div>
+      <div class="stat"><div class="v">30–80</div><div class="k">บูธต่องาน · Booths per event</div></div>
+      <div class="stat"><div class="v">∞</div><div class="k">ข้อมูลกระจัดกระจาย · Fragmented info</div></div>
+    </div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 4. STAKEHOLDERS -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 02 · Users &amp; Stakeholders</div>
+    <h1 class="title">5 บทบาทผู้ใช้บนแพลตฟอร์มเดียว<span class="sub">Five roles, one platform — role-based access control (RBAC)</span></h1>
+    <div class="grow"></div>
+    <div class="grid3" style="gap:18px">
+      <div class="card"><h3>ผู้เข้าชม <span class="th">Visitor</span></h3><p>ค้นหาบูธด้วย AI · ถาม FAQ · ดูเซสชัน &amp; สปีกเกอร์<br><span class="th">AI booth matching · FAQ chat · sessions</span></p></div>
+      <div class="card"><h3>ผู้ออกบูธ <span class="th">Exhibitor</span></h3><p>จัดการโปรไฟล์บูธ · รับลีด · ดู analytics · บอทประจำบูธ<br><span class="th">Booth profile · leads · analytics · bot</span></p></div>
+      <div class="card"><h3>ผู้ดูแลงาน <span class="th">Event Admin</span></h3><p>จัดการ exhibitor · FAQ KB · Memory moderation · consent logs<br><span class="th">Exhibitors · knowledge base · analytics</span></p></div>
+      <div class="card"><h3>ผู้จัดงาน <span class="th">Organizer</span></h3><p>สร้างและจัดการงาน · มอบหมายสิทธิ์ทีมแอดมิน<br><span class="th">Create events · assign admin team</span></p></div>
+      <div class="card"><h3>แอดมินแพลตฟอร์ม <span class="th">Root / Platform</span></h3><p>จัดการหลายงาน · เชื่อมต่อ Botnoi bot &amp; LINE OA<br><span class="th">Multi-event · bots · LINE Official Account</span></p></div>
+      <div class="card" style="background:linear-gradient(135deg,var(--gold),var(--brown));border:none;color:#fff">
+        <h3 style="color:#fff">การควบคุมสิทธิ์ <span style="color:rgba(255,255,255,.85);font-size:14px;font-weight:600">RBAC + PDPA</span></h3>
+        <p style="color:rgba(255,255,255,.9)">แยกข้อมูลต่อบทบาทและต่องาน (event-scoped) ปลอดภัยตามหลัก PDPA<br><span style="color:rgba(255,255,255,.85)">Per-role &amp; per-event data isolation</span></p>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 5. SOLUTION -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 03 · Solution</div>
+    <h1 class="title">โซลูชัน: จับคู่ผู้เข้าชมกับบูธที่ใช่ด้วย AI<span class="sub">An AI platform that matches visitors to the right booths — and answers event questions in chat</span></h1>
+    <div class="grow"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="num-badge" style="margin-bottom:14px">◎</div>
+        <h3>AI Booth Matching</h3>
+        <p style="font-weight:600;color:var(--ink);font-size:16px">“Describe your pain, get the perfect booth match instantly.”</p>
+        <p>พิมพ์ปัญหา/ความสนใจเป็นภาษาธรรมชาติ → AI คืนบูธที่เกี่ยวข้องที่สุด 3–5 อันดับ พร้อม <b>คะแนนความแม่นยำ</b> ตำแหน่งบูธ และข้อมูลติดต่อ</p>
+      </div>
+      <div class="card">
+        <div class="num-badge" style="margin-bottom:14px">✦</div>
+        <h3>Event FAQ Chatbot</h3>
+        <p style="font-weight:600;color:var(--ink);font-size:16px">“Schedules, maps, food courts — answered in chat.”</p>
+        <p>แชทบอทขับเคลื่อนด้วย <b>Botnoi AI</b> ตอบเรื่องตาราง แผนผัง โซนอาหาร การเดินทาง สิ่งอำนวยความสะดวก รองรับหลายภาษา</p>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 6. HOW IT WORKS -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 03 · How It Works</div>
+    <h1 class="title">หลักการทำงาน 3 ขั้นตอน<span class="sub">From a sentence to the right booth in three steps</span></h1>
+    <div class="grow"></div>
+    <div class="grid3">
+      <div class="card"><div class="num-badge">01</div><h3 style="margin-top:14px">อธิบายปัญหา/ความสนใจ</h3><p><b>Describe your pain or interest</b><br>เช่น “อยากลดต้นทุน Call Center ด้วย AI”</p></div>
+      <div class="card"><div class="num-badge">02</div><h3 style="margin-top:14px">AI วิเคราะห์และจับคู่ทันที</h3><p><b>AI analyzes &amp; matches instantly</b><br>เทียบความเกี่ยวข้องกับแคตตาล็อกบูธและจัดอันดับ</p></div>
+      <div class="card"><div class="num-badge">03</div><h3 style="margin-top:14px">เดินตรงไปบูธที่ใช่</h3><p><b>Walk directly to the right booth</b><br>พร้อมตำแหน่ง คะแนน และข้อมูลติดต่อ</p></div>
+    </div>
+    <div class="grow"></div>
+    <div class="card" style="background:var(--card)">
+      <div class="lh mono" style="font-size:12.5px;letter-spacing:.1em;color:var(--brown);text-transform:uppercase;margin-bottom:8px">Matching pipeline</div>
+      <div class="chips" style="align-items:center">
+        <span class="chip">User query (TH/EN)</span><span class="arrow" style="margin:0 4px">→</span>
+        <span class="chip">Edge Function <span class="mono">find-booth()</span></span><span class="arrow" style="margin:0 4px">→</span>
+        <span class="chip">Semantic match vs. exhibitor catalog</span><span class="arrow" style="margin:0 4px">→</span>
+        <span class="chip">Ranked results <span class="mono">94 / 88 / 82%</span></span><span class="arrow" style="margin:0 4px">→</span>
+        <span class="chip">Location + contact</span>
+      </div>
+    </div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 7. FEATURES -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 03 · Features &amp; Modules</div>
+    <h1 class="title">ฟีเจอร์และโมดูลหลัก<span class="sub">Key features &amp; modules</span></h1>
+    <div class="grow"></div>
+    <div class="grid4">
+      <div class="card"><h3>Booth Matching</h3><p>จับคู่บูธด้วย AI พร้อมคะแนน · scoped ต่องาน</p></div>
+      <div class="card"><h3>FAQ Chatbot</h3><p>Botnoi AI · KB 30+ ข้อ · 6 หมวด</p></div>
+      <div class="card"><h3>Sessions &amp; Speakers</h3><p>เซสชันสด · Q&amp;A · trending &amp; sentiment</p></div>
+      <div class="card"><h3>Exhibitor Directory</h3><p>ค้นหา/กรองตามอุตสาหกรรม</p></div>
+      <div class="card"><h3>Memory / Notes</h3><p>บันทึกอินไซต์จากบูธ · public/private</p></div>
+      <div class="card"><h3>Analytics</h3><p>traffic บูธ · ประสิทธิภาพการจับคู่ · visitor flow</p></div>
+      <div class="card"><h3>Consent Logs</h3><p>บันทึกความยินยอมตาม PDPA</p></div>
+      <div class="card"><h3>Bot &amp; LINE OA</h3><p>เชื่อมต่อบอทและ LINE Official Account</p></div>
+    </div>
+    <div class="grow"></div>
+    <p class="lead" style="margin-top:0">6 หมวด FAQ: ตารางงาน · สถานที่ · สปีกเกอร์ · อาหาร · การเดินทาง · สิ่งอำนวยความสะดวก &nbsp;<span class="th">— schedule · location · speakers · food · transport · facilities</span></p>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 8. ARCHITECTURE -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 04 · System Architecture</div>
+    <h1 class="title">สถาปัตยกรรมระบบ<span class="sub">A modern web client over a Supabase backend with AI edge services</span></h1>
+    <div class="grow"></div>
+    <div class="layer">
+      <div class="lh">Client · เว็บแอป (SPA)</div>
+      <div class="chips">
+        <span class="chip">React 18 + Vite</span><span class="chip">TypeScript</span><span class="chip">Tailwind + shadcn/ui</span>
+        <span class="chip">React Router</span><span class="chip">React Query</span><span class="chip">Recharts</span><span class="chip">i18n · 6 ภาษา</span>
+      </div>
+    </div>
+    <div class="arrow">↓ &nbsp; HTTPS / Realtime</div>
+    <div class="grid2" style="gap:18px">
+      <div class="layer">
+        <div class="lh">Backend · Supabase</div>
+        <div class="chips">
+          <span class="chip">PostgreSQL</span><span class="chip">Auth + RBAC</span><span class="chip">Realtime</span>
+        </div>
+        <p style="font-size:13.5px;color:var(--ink-soft);margin-top:10px">events · exhibitors · sessions · faq_kb · memory · profiles &nbsp;<i>(event-scoped, multi-tenant)</i></p>
+      </div>
+      <div class="layer">
+        <div class="lh">AI Services · ระเบียบวิธี AI</div>
+        <div class="chips">
+          <span class="chip">Edge Fn <span class="mono">find-booth()</span></span><span class="chip">Edge Fn <span class="mono">faq-search()</span></span>
+          <span class="chip">Botnoi AI · NLU/TTS/STT</span><span class="chip">LINE OA · Web widget</span>
+        </div>
+        <p style="font-size:13.5px;color:var(--ink-soft);margin-top:10px">การจับคู่เชิงความหมาย + การค้นคืนความรู้ (RAG-style) + บอทภาษาไทย</p>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 9. AI METHODOLOGY -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 04 · AI Methodology</div>
+    <h1 class="title">ระเบียบวิธีด้าน AI<span class="sub">How matching, retrieval, and the Thai-native bot work</span></h1>
+    <div class="grow"></div>
+    <div class="two-col-text">
+      <div>
+        <h3 style="font-size:18px;color:var(--brown)">การจับคู่บูธ · Booth Matching</h3>
+        <ul class="bul">
+          <li>รับ intent ภาษาธรรมชาติ (ไทย/อังกฤษ) <span>— natural-language intent capture</span></li>
+          <li>เทียบความคล้ายเชิงความหมายกับแคตตาล็อก (บริการ + use case + ผลลัพธ์) <span>— semantic similarity over exhibitor catalog</span></li>
+          <li>ให้คะแนนความเกี่ยวข้องและจัดอันดับ Top-N พร้อม % ความมั่นใจ <span>— relevance scoring &amp; ranking</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:18px;color:var(--brown)">การค้นคืน FAQ · Retrieval</h3>
+        <ul class="bul">
+          <li>ค้นคืนจากฐานความรู้ของงานแบบ RAG แล้วตอบโดยอิงข้อมูลจริง <span>— grounded answers from curated KB</span></li>
+          <li>แนะนำบูธ/เซสชันที่เกี่ยวข้องต่อยอด <span>— suggests related booths &amp; sessions</span></li>
+        </ul>
+        <h3 style="font-size:18px;color:var(--brown);margin-top:6px">Botnoi AI &amp; หลายภาษา</h3>
+        <ul class="bul">
+          <li>NLU/TTS/STT ภาษาไทยเจ้าของภาษา · omni-channel (Web · LINE · IVR)</li>
+          <li>รองรับ 6 ภาษา: ไทย · English · 中文 · Français · Tiếng Việt · 日本語</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 10. SECURITY & MULTITENANCY -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 05 · Security &amp; Multi-tenancy</div>
+    <h1 class="title">ความปลอดภัยและสถาปัตยกรรมหลายผู้เช่า<span class="sub">Built-in RBAC, tenant isolation, and PDPA compliance</span></h1>
+    <div class="grow"></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>การควบคุมสิทธิ์ · Access Control</h3>
+        <ul class="bul">
+          <li>RBAC 5 บทบาท: visitor · exhibitor · admin · organizer · root</li>
+          <li>Supabase Auth + การ scope ข้อมูลระดับแถว (RLS-style)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>หลายผู้เช่า &amp; ความเป็นส่วนตัว · Multi-tenant &amp; Privacy</h3>
+        <ul class="bul">
+          <li>แยกข้อมูลต่องาน (event-scoped) — ไม่มีข้อมูลรั่วข้ามงาน <span>— no cross-event data leakage</span></li>
+          <li>PDPA: บันทึกความยินยอม + การมองเห็น public/private บน Memory/Notes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 11. USE CASES -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 06 · Use Cases</div>
+    <h1 class="title">ตัวอย่างการจับคู่: ปัญหา → บูธ → ผลลัพธ์<span class="sub">Pain → matched booth → measurable outcome</span></h1>
+    <div class="grow"></div>
+    <table class="uc">
+      <thead><tr><th>ปัญหา · Pain (plain language)</th><th>บูธที่จับคู่ · Matched booth</th><th>ผลลัพธ์ · Outcome</th></tr></thead>
+      <tbody>
+        <tr><td>“ลดต้นทุน Call Center ด้วย AI”<div class="s">Reduce call-center cost</div></td><td><span class="tag-mini">Botnoi</span> <span class="tag-mini">VoiceSphere</span></td><td>AHT −35% ใน 4 เดือน</td></tr>
+        <tr><td>“ค้นเอกสารภายในเร็วขึ้น”<div class="s">Faster internal document search</div></td><td><span class="tag-mini">AI Solutions (RAG)</span></td><td>PTT: 4 ชม. → 8 นาที</td></tr>
+        <tr><td>“self-service ธนาคาร”<div class="s">Banking self-service</div></td><td><span class="tag-mini">Botnoi</span></td><td>Krungsri: 22% → 61%</td></tr>
+        <tr><td>“smart factory / robotics”</td><td><span class="tag-mini">SmartFactory</span> <span class="tag-mini">RoboArm</span></td><td>roadmap อัตโนมัติสายการผลิต</td></tr>
+        <tr><td>“PDPA compliance” · “payment / PromptPay”</td><td><span class="tag-mini">SecureNet</span> <span class="tag-mini">FinTechX</span></td><td>ปฏิบัติตามกฎหมาย · เชื่อม PromptPay</td></tr>
+      </tbody>
+    </table>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 12. RESULTS -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 06 · Results &amp; Metrics</div>
+    <h1 class="title">ผลลัพธ์และตัวชี้วัด<span class="sub">Platform metrics &amp; demo deployments</span></h1>
+    <div class="grow"></div>
+    <div class="grid4">
+      <div class="stat"><div class="v">15s</div><div class="k">เวลาจับคู่เฉลี่ย · Avg match time</div></div>
+      <div class="stat"><div class="v">92%</div><div class="k">ความแม่นยำ · Match precision</div></div>
+      <div class="stat"><div class="v">6</div><div class="k">ภาษา · Languages</div></div>
+      <div class="stat"><div class="v">30+</div><div class="k">FAQ ในฐานความรู้ · KB entries</div></div>
+    </div>
+    <div class="grow"></div>
+    <div class="card">
+      <h3>งานสาธิตบนระบบ · Demo events</h3>
+      <ul class="bul" style="margin-top:14px">
+        <li><b>Thailand Tech Summit 2026</b> — BITEC Bangna · 30 บูธ · 8 เซสชัน · เชื่อม Botnoi (LINE OA @youwalk) <span>· สถานะ Live</span></li>
+        <li><b>AI Expo Asia 2026</b> — QSNCC · 45 บูธ · 32 เซสชัน &nbsp;·&nbsp; <b>Bangkok Food Innovation Fair</b> — 80 บูธ &nbsp;·&nbsp; <b>GreenTech Bangkok 2025</b></li>
+      </ul>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 13. NOVELTY -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 07 · Novelty &amp; Differentiation</div>
+    <h1 class="title">จุดเด่นเชิงนวัตกรรม<span class="sub">What makes EventIQ different</span></h1>
+    <div class="grow"></div>
+    <div class="grid2">
+      <div class="card"><h3>AI-first matching</h3><p>จับคู่บูธด้วย AI แทนการเดินสุ่ม/แผนผังนิ่ง <span class="th">vs. manual browsing &amp; static maps</span></p></div>
+      <div class="card"><h3>Thai-native AI</h3><p>ขับเคลื่อนด้วย Botnoi — เข้าใจภาษาไทยลึก คู่แข่งต่างชาติทำได้ยาก</p></div>
+      <div class="card"><h3>One unified platform</h3><p>รวมผู้เข้าชม + ผู้ออกบูธ + ผู้จัดงาน ไม่ใช่แค่แอปแผนที่</p></div>
+      <div class="card"><h3>Multi-tenant SaaS</h3><p>RBAC + PDPA + analytics + memory/sentiment ในตัว</p></div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 14. ROADMAP -->
+  <section class="slide">
+    <div class="eyebrow"><span class="dot"></span> 07 · Roadmap &amp; Future Work</div>
+    <h1 class="title">แผนพัฒนาต่อยอด<span class="sub">Roadmap &amp; future research</span></h1>
+    <div class="grow"></div>
+    <div class="grid3">
+      <div class="card"><div class="lh mono" style="color:var(--brown);font-size:12px;letter-spacing:.1em">NEAR-TERM</div><ul class="bul" style="margin-top:8px"><li>โมบายแอป (native)</li><li>Lead-capture CRM สำหรับผู้ออกบูธ</li></ul></div>
+      <div class="card"><div class="lh mono" style="color:var(--brown);font-size:12px;letter-spacing:.1em">RESEARCH</div><ul class="bul" style="margin-top:8px"><li>Embeddings/การจับคู่ที่แม่นขึ้น + การประเมินแบบ A/B</li><li>นำทางในอาคารด้วย beacon (indoor navigation)</li></ul></div>
+      <div class="card"><div class="lh mono" style="color:var(--brown);font-size:12px;letter-spacing:.1em">SCALE</div><ul class="bul" style="margin-top:8px"><li>ขยายสู่ SEA: เวียดนาม · ฟิลิปปินส์</li><li>เทรนบอทระดับองค์กร (enterprise)</li></ul></div>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+  <!-- 15. CONCLUSION -->
+  <section class="slide center closing">
+    <div class="eyebrow"><span class="dot"></span> 08 · Conclusion</div>
+    <h1 class="title" style="font-size:44px">จาก “เดินหา 3 ชั่วโมง” สู่ “15 วินาทีถึงบูธที่ใช่”<span class="sub" style="font-size:23px">From three hours of wandering to fifteen seconds to the right booth</span></h1>
+    <ul class="bul" style="margin-top:22px;font-size:17px">
+      <li>AI Booth Matching + FAQ Chatbot + Analytics สำหรับผู้เข้าชม ผู้ออกบูธ และผู้จัดงาน</li>
+      <li>สร้างบนเว็บสมัยใหม่ + Supabase + Botnoi AI · หลายภาษา · พร้อมด้าน PDPA</li>
+    </ul>
+    <div class="grow"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div>
+        <div style="font-size:30px;font-weight:700;color:var(--brown)">ขอบคุณครับ · Thank you</div>
+        <div class="lead" style="margin-top:6px">คำถามและข้อเสนอแนะ · Questions &amp; Discussion</div>
+      </div>
+      <div class="pill"><span class="dot"></span> Powered by Botnoi AI</div>
+    </div>
+    <div class="foot"><div class="brand"><b>EventIQ</b> · YOU WALK I FIND</div><div class="pg mono"></div></div>
+  </section>
+
+</div>
+</body>
+</html>
