@@ -9,7 +9,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { RoleGate } from "@/lib/auth/RoleGate";
-import { BotnoiWidget } from "./components/botnoi/BotnoiWidget";
+import { SiteAssistant } from "./components/assistant/SiteAssistant";
 import { VersionChecker } from "./components/VersionChecker";
 
 // Lazy-load every route — each becomes its own chunk so the initial bundle
@@ -130,7 +130,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </Suspense>
-              <BotnoiWidget />
+              <SiteAssistant />
               <VersionChecker />
             </AuthProvider>
           </BrowserRouter>
